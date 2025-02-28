@@ -1,0 +1,23 @@
+{% extends "students/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>إضافة طالب</h2>
+<form method="post" enctype="multipart/form-data">  <!-- تأكد من وجود enctype -->
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary">حفظ الطالب</button>
+</form>
+
+    <!-- تفعيل Flatpickr -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            flatpickr(".flatpickr", {
+                dateFormat: "Y-m-d",  // تنسيق التاريخ
+                defaultDate: "today", // تعيين اليوم كتاريخ افتراضي
+            });
+        });
+    </script>
+{% endblock %}
+
+

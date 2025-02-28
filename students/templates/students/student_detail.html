@@ -1,0 +1,103 @@
+{% extends "students/base.html" %}
+
+{% block content %}
+    <h2>تفاصيل الطالب: {{ student.first_name }} {{ student.last_name }}</h2>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">البيانات الشخصية</h5>
+            <p class="card-text">
+                <strong>الاسم الأول:</strong> {{ student.first_name }}<br>
+                <strong>الاسم الأخير:</strong> {{ student.last_name }}<br>
+                <strong>تاريخ الميلاد:</strong> {{ student.birth_date }}<br>
+                <strong>الجنس:</strong> {{ student.get_gender_display }}<br>
+                <strong>الجنسية:</strong> {{ student.nationality }}<br>
+                <strong>الوظيفة:</strong> {{ student.job }}<br>
+                <strong>الحالة الاجتماعية:</strong> {{ student.get_marital_status_display }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">معلومات الجواز والتسجيل</h5>
+            <p class="card-text">
+                <strong>رقم الجواز:</strong> {{ student.passport_number }}<br>
+                <strong>رقم التسجيل:</strong> {{ student.registration_number }}<br>
+                <strong>مكان الإصدار:</strong> {{ student.place_of_issue }}<br>
+                <strong>الغرض:</strong> {{ student.purpose }}<br>
+                <strong>مكان التسجيل:</strong> {{ student.registration_place }}<br>
+                <strong>رقم التأشيرة:</strong> {{ student.visa_number }}<br>
+                <strong>تاريخ الإصدار:</strong> {{ student.date_of_issued }}<br>
+                <strong>اسم الميناء:</strong> {{ student.port_name }}<br>
+                <strong>تاريخ التسجيل:</strong> {{ student.date_of_registration }}<br>
+                <strong>مكان إصدار الإقامة:</strong> {{ student.place_of_issued_residence }}<br>
+                <strong>رقم الإقامة:</strong> {{ student.residence_number }}<br>
+                <strong>مكان إصدار الإقامة:</strong> {{ student.residence_issue_place }}<br>
+                <strong>تاريخ إصدار الإقامة:</strong> {{ student.residence_issued_date }}<br>
+                <strong>تاريخ انتهاء الإقامة:</strong> {{ student.residence_end_date }}<br>
+                <strong>الرقم المرجعي:</strong> {{ student.reference_number }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <!-- no -->
+        <div class="card-body">
+            <h5 class="card-title">معلومات الدخول والمغادرة</h5>
+            <p class="card-text">
+                <strong>تاريخ الدخول:</strong> {{ student.entry_date }}<br>
+                <strong>تاريخ المغادرة:</strong> {{ student.end_date }}<br>
+                <strong>تاريخ التسجيل:</strong> {{ student.registration_date }}<br>
+                <strong>تاريخ انتهاء التسجيل:</strong> {{ student.end_registration_date }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">معلومات عامة</h5>
+            <p class="card-text">
+                <strong>نوع الخدمات:</strong> {{ student.type_of_services }}<br>
+                <strong>الجهة المصدرة:</strong> {{ student.issuing_authority }}<br>
+                <strong>رقم الهاتف:</strong> {{ student.phone_number }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">معلومات المرافق</h5>
+            <p class="card-text">
+                <strong>اسم المرافق:</strong> {{ student.companion_name }}<br>
+                <strong>جنسية المرافق:</strong> {{ student.companion_nationality }}<br>
+                <strong>صلة القرابة:</strong> {{ student.companion_relationship }}<br>
+                <strong>رقم جواز المرافق:</strong> {{ student.companion_passport_number }}<br>
+                <strong>رقم إقامة المرافق:</strong> {{ student.companion_residence_number }}<br>
+                <strong>تاريخ انتهاء إقامة المرافق:</strong> {{ student.companion_residence_end_date }}
+            </p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">ملاحظة</h5>
+            <p class="card-text">{{ student.note }}</p>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5 class="card-title">الصورة</h5>
+            {% if student.image %}
+            <a href="{{ student.image.url }}" data-lightbox="student-gallery" data-title="{{ student.first_name }}">
+                <img src="{{ student.image.url }}" alt="صورة الطالب" width="150" class="img-thumbnail">
+            </a>
+        {% else %}
+            <p class="text-muted">لا توجد صورة</p>
+        {% endif %}
+
+        </div>
+    </div>
+
+    <a href="{% url 'student_list' %}" class="btn btn-primary mt-3">العودة إلى القائمة</a>
+{% endblock %}

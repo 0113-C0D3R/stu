@@ -1,0 +1,10 @@
+{% extends "students/base.html" %}
+
+{% block content %}
+    <h2>تسجيل الدخول</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">تسجيل الدخول</button>
+    </form>
+{% endblock %}
