@@ -42,7 +42,9 @@
                                 <img src="{{ student.image.url }}" alt="صورة الطالب" width="50" height="50" class="img-thumbnail">
                             </a>
                         {% else %}
-                            <p class="text-muted">لا توجد صورة</p>
+
+                        <a href="{% static 'students/default.png' %}" data-lightbox="student-gallery" data-title="{{ student.first_name }}">
+                            <img src="{% static 'students/default.png' %}" alt="صورة الطالب الإفتراضية" width="50" height="50" class="img-thumbnail">
                         {% endif %}
                     </td>
                     

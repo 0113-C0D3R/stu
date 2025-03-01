@@ -21,7 +21,9 @@ class Student(models.Model):
     last_name = models.CharField(max_length=100, verbose_name="اللقب")
     birth_date = models.DateField(verbose_name="تاريخ الميلاد")
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name="الجنس")
+
     image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
+    
     nationality = CountryField(verbose_name="الجنسية") 
     job = models.CharField(max_length=100, verbose_name="الوظيفة", blank=True, null=True)
     marital_status = models.CharField(max_length=10, choices=MARITAL_STATUS_CHOICES, verbose_name="الحالة الاجتماعية")
@@ -85,4 +87,5 @@ class CustomUser(AbstractUser):
 
     def is_viewer(self):
         return self.role == 'viewer'
+
 

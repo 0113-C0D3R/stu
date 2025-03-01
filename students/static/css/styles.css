@@ -20,6 +20,24 @@ table {
     text-align: right;  /* محاذاة النص في حقول الإدخال */
 }
 
+/* صفحة إظهار البيانات الشخصية للطالب */
 h6.st-na {
     margin-top: 16px;
 }
+
+.mt-5.st-name {
+    margin-top: 10px !important;
+}
+
+.student-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+a.btn.btn-primary, .btn.btn-danger {
+    font-size: 12px;
+    padding: 6px;
+}
+
