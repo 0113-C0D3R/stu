@@ -1,103 +1,79 @@
 {% extends "students/base.html" %}
+{% load static %}
 
 {% block content %}
-    <h2>تفاصيل الطالب: {{ student.first_name }} {{ student.last_name }}</h2>
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">البيانات الشخصية</h5>
-            <p class="card-text">
-                <strong>الاسم الأول:</strong> {{ student.first_name }}<br>
-                <strong>الاسم الأخير:</strong> {{ student.last_name }}<br>
-                <strong>تاريخ الميلاد:</strong> {{ student.birth_date }}<br>
-                <strong>الجنس:</strong> {{ student.get_gender_display }}<br>
-                <strong>الجنسية:</strong> {{ student.nationality }}<br>
-                <strong>الوظيفة:</strong> {{ student.job }}<br>
-                <strong>الحالة الاجتماعية:</strong> {{ student.get_marital_status_display }}
-            </p>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">معلومات الجواز والتسجيل</h5>
-            <p class="card-text">
-                <strong>رقم الجواز:</strong> {{ student.passport_number }}<br>
-                <strong>رقم التسجيل:</strong> {{ student.registration_number }}<br>
-                <strong>مكان الإصدار:</strong> {{ student.place_of_issue }}<br>
-                <strong>الغرض:</strong> {{ student.purpose }}<br>
-                <strong>مكان التسجيل:</strong> {{ student.registration_place }}<br>
-                <strong>رقم التأشيرة:</strong> {{ student.visa_number }}<br>
-                <strong>تاريخ الإصدار:</strong> {{ student.date_of_issued }}<br>
-                <strong>اسم الميناء:</strong> {{ student.port_name }}<br>
-                <strong>تاريخ التسجيل:</strong> {{ student.date_of_registration }}<br>
-                <strong>مكان إصدار الإقامة:</strong> {{ student.place_of_issued_residence }}<br>
-                <strong>رقم الإقامة:</strong> {{ student.residence_number }}<br>
-                <strong>مكان إصدار الإقامة:</strong> {{ student.residence_issue_place }}<br>
-                <strong>تاريخ إصدار الإقامة:</strong> {{ student.residence_issued_date }}<br>
-                <strong>تاريخ انتهاء الإقامة:</strong> {{ student.residence_end_date }}<br>
-                <strong>الرقم المرجعي:</strong> {{ student.reference_number }}
-            </p>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <!-- no -->
-        <div class="card-body">
-            <h5 class="card-title">معلومات الدخول والمغادرة</h5>
-            <p class="card-text">
-                <strong>تاريخ الدخول:</strong> {{ student.entry_date }}<br>
-                <strong>تاريخ المغادرة:</strong> {{ student.end_date }}<br>
-                <strong>تاريخ التسجيل:</strong> {{ student.registration_date }}<br>
-                <strong>تاريخ انتهاء التسجيل:</strong> {{ student.end_registration_date }}
-            </p>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">معلومات عامة</h5>
-            <p class="card-text">
-                <strong>نوع الخدمات:</strong> {{ student.type_of_services }}<br>
-                <strong>الجهة المصدرة:</strong> {{ student.issuing_authority }}<br>
-                <strong>رقم الهاتف:</strong> {{ student.phone_number }}
-            </p>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">معلومات المرافق</h5>
-            <p class="card-text">
-                <strong>اسم المرافق:</strong> {{ student.companion_name }}<br>
-                <strong>جنسية المرافق:</strong> {{ student.companion_nationality }}<br>
-                <strong>صلة القرابة:</strong> {{ student.companion_relationship }}<br>
-                <strong>رقم جواز المرافق:</strong> {{ student.companion_passport_number }}<br>
-                <strong>رقم إقامة المرافق:</strong> {{ student.companion_residence_number }}<br>
-                <strong>تاريخ انتهاء إقامة المرافق:</strong> {{ student.companion_residence_end_date }}
-            </p>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">ملاحظة</h5>
-            <p class="card-text">{{ student.note }}</p>
-        </div>
-    </div>
-
-    <div class="card mt-3">
-        <div class="card-body">
-            <h5 class="card-title">الصورة</h5>
-            {% if student.image %}
-            <a href="{{ student.image.url }}" data-lightbox="student-gallery" data-title="{{ student.first_name }}">
-                <img src="{{ student.image.url }}" alt="صورة الطالب" width="150" class="img-thumbnail">
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h4 class="mb-0 flex-grow-1">{{ student.first_name }} {{ student.last_name }}</h4>
+            <a href="{% url 'student_list' %}" class="btn btn-light">
+                <i class="bi bi-arrow-left"></i> العودة إلى القائمة
             </a>
-        {% else %}
-            <p class="text-muted">لا توجد صورة</p>
-        {% endif %}
-
         </div>
-    </div>
 
-    <a href="{% url 'student_list' %}" class="btn btn-primary mt-3">العودة إلى القائمة</a>
+        <div class="card-body">
+            <div class="row">
+                <!-- صورة الطالب -->
+                <div class="col-md-3 text-center">
+                    {% if student.image %}
+                        <img src="{{ student.image.url }}" class="img-fluid rounded-circle border" alt="صورة الطالب" width="150">
+                    {% else %}
+                        <p class="text-muted">لا توجد صورة</p>
+                    {% endif %}
+                    <p class="mt-2"><strong>الجنسية:</strong>
+                        <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.png" width="25">
+                        {{ student.nationality.name }}
+                    </p>
+                </div>
+
+                <!-- بيانات الطالب -->
+                <div class="col-md-9">
+                    <ul class="nav nav-tabs" id="studentTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="personal-tab" data-bs-toggle="tab" href="#personal" role="tab">المعلومات الشخصية</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="passport-tab" data-bs-toggle="tab" href="#passport" role="tab">الجواز والإقامة</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="contact-tab" data-bs-toggle="tab" href="#contact" role="tab">الاتصال والمرافقون</a>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content mt-3">
+                        <!-- معلومات شخصية -->
+                        <div class="tab-pane fade show active" id="personal" role="tabpanel">
+                            <table class="table table-bordered">
+                                <tr><th>تاريخ الميلاد:</th><td>{{ student.birth_date }}</td></tr>
+                                <tr><th>الجنس:</th><td>{{ student.get_gender_display }}</td></tr>
+                                <tr><th>الحالة الاجتماعية:</th><td>{{ student.get_marital_status_display }}</td></tr>
+                            </table>
+                        </div>
+
+                        <!-- بيانات الجواز والإقامة -->
+                        <div class="tab-pane fade" id="passport" role="tabpanel">
+                            <table class="table table-bordered">
+                                <tr><th>رقم الجواز:</th><td>{{ student.passport_number }}</td></tr>
+                                <tr><th>مكان الإصدار:</th><td>{{ student.place_of_issue }}</td></tr>
+                                <tr><th>تاريخ انتهاء الإقامة:</th>
+                                    <td class="text-danger"><strong>{{ student.residence_end_date }}</strong></td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- معلومات الاتصال والمرافقون -->
+                        <div class="tab-pane fade" id="contact" role="tabpanel">
+                            <table class="table table-bordered">
+                                <tr><th>رقم الهاتف:</th><td>{{ student.phone_number }}</td></tr>
+                                <tr><th>اسم المرافق:</th><td>{{ student.companion_name }}</td></tr>
+                                <tr><th>صلة القرابة:</th><td>{{ student.companion_relationship }}</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+
 {% endblock %}
