@@ -6,6 +6,8 @@ from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator  # استيراد Paginator
 from django.shortcuts import render, get_object_or_404  # استيراد get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
+from students.models import Student
 
 # عرض نموذج تسجيل الدخول
 def home(request):
@@ -34,9 +36,13 @@ def student_list(request):
         students = students.filter(first_name__icontains=query)
     return render(request, 'students/student_list.html', {'students': students})
 
+
+
 def student_detail(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    return render(request, 'students/student_detail.html', {'student': student})
+    student = Student.objects.get(id=student_id)
+    return render(request, 'student_detail.html', {'student': student})
+
+
 
 
 # صفحة تعديل طالب
@@ -53,13 +59,14 @@ def student_edit(request, student_id):
 
     return render(request, 'students/student_edit.html', {'form': form, 'student': student})
 
+
     
 
 def delete_student(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     student.delete()
-    messages.success(request, "تم حذف الطالب بنجاح.")
-    return redirect(reverse('students_list'))  # استخدم الاسم الصحيح لعرض قائمة الطلاب
+    return redirect(reverse('student_list'))
+    
 
 
 

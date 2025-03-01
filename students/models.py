@@ -2,12 +2,21 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
 
+
+
 class Student(models.Model):
     # الحقول الحالية
     GENDER_CHOICES = [
         ('M', 'ذكر'),
         ('F', 'أنثى'),
     ]
+    name = models.CharField(max_length=100)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+
+    def get_gender_display(self):
+        return dict(self.GENDER_CHOICES).get(self.gender, self.gender)
+        
+    
     nationality = CountryField(verbose_name="الجنسية")  # استخدام CountryField
 
     MARITAL_STATUS_CHOICES = [
