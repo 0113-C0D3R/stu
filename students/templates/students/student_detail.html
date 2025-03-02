@@ -45,6 +45,66 @@
                     </button>
                 </form>
             </div>
+            <div class="container mt-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title">إدارة التوجيهات والمراسلات</h5>
+                    </div>
+
+
+                    
+                    <div class="card-body">
+                        <!-- القائمة المنسدلة -->
+                        <div class="form-group">
+                            <label for="actionDropdown" class="font-weight-bold">اختر إجراءً:</label>
+                            <select class="form-control" id="actionDropdown">
+                                <option value="">اختر إجراءً...</option>
+                                <option value="passports">إلى الجوازات</option>
+                                <option value="security">إلى الأمن العام</option>
+                                <option value="students_affairs">إلى شؤون الطلاب</option>
+                            </select>
+                        </div>
+            
+                        <!-- زر تنفيذ الإجراء -->
+                        <button class="btn btn-success btn-block mt-3" onclick="performAction()">
+                            <i class="fas fa-play-circle"></i> تنفيذ الإجراء
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                function performAction() {
+                    const selectedAction = document.getElementById('actionDropdown').value;
+                    const studentId = {{ student.id }};
+            
+                    if (!selectedAction) {
+                        alert('الرجاء اختيار إجراء.');
+                        return;
+                    }
+            
+                    let url;
+                    switch (selectedAction) {
+                        case 'passports':
+                            url = `/student/${studentId}/to_passports/`;
+                            break;
+                        case 'security':
+                            url = `/student/${studentId}/to_security/`;
+                            break;
+                        case 'students_affairs':
+                            url = `/student/${studentId}/to_students_affairs/`;
+                            break;
+                        default:
+                            alert('إجراء غير معروف.');
+                            return;
+                    }
+            
+                    // توجيه المستخدم إلى الرابط المحدد
+                    window.location.href = url;
+                }
+            </script>
+
+
 
         </div>
         

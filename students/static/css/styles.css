@@ -41,7 +41,9 @@ table {
     padding: 20px;  /* تباعد داخلي */
 }
 
-
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark {
+    margin-bottom: -15px !important;
+}
 
 /* صفحة إظهار البيانات الشخصية للطالب */
 h6.st-na {

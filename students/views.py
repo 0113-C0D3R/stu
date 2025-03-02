@@ -124,3 +124,8 @@ def home_with_statistics(request):
     }
 
     return render(request, 'students/home.html', context)
+
+
+def to_passports(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    return render(request, 'students/passport_renewal.html', {'student': student})

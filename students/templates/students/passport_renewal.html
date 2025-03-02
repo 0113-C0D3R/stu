@@ -1,0 +1,31 @@
+
+{% extends "students/base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header text-center">
+            <img src="{% static 'images/logo.png' %}" alt="شعار الجهة" style="width: 100px; height: auto;">
+            <h3>مصلحة الجوازات</h3>
+            <p>العنوان: شارع الجوازات، المدينة، الدولة</p>
+        </div>
+        <div class="card-body">
+            <h4 class="text-center">طلب تجديد جواز سفر</h4>
+            <hr>
+            <p><strong>تحية طيبه وبعد نرجوا منكم التكرم بتجديد جواز الطالب </strong> {{ student.first_name }} {{ student.last_name }}</p>
+            <p><strong>رقم الجواز:</strong> {{ student.passport_number }}</p>
+            <p><strong>الجنسية:</strong> {{ student.nationality.name }}</p>
+            <p><strong>تاريخ الميلاد:</strong> {{ student.birth_date }}</p>
+            <p><strong>تاريخ انتهاء الإقامة:</strong> {{ student.residence_end_date }}</p>
+            <hr>
+            <p class="text-center">نرجو تجديد جواز السفر المذكور أعلاه في أقرب وقت ممكن.</p>
+        </div>
+        <div class="card-footer text-center">
+            <button class="btn btn-primary" onclick="window.print()">طباعة المستند</button>
+            <a href="{% url 'student_detail' student.id %}" class="btn btn-secondary">العودة</a>
+        </div>
+    </div>
+    <button class="btn btn-primary" onclick="window.print()">طباعة المستند</button>
+</div>
+{% endblock %}

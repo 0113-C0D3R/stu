@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from .views import student_detail, student_edit, delete_student, get_statistics, CustomLoginView
+from .views import student_detail, student_edit, delete_student, get_statistics, CustomLoginView, to_passports
 
 
 urlpatterns = [
@@ -12,6 +12,7 @@ urlpatterns = [
     path('student/delete/<int:student_id>/', delete_student, name='delete_student'),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('get_statistics/', get_statistics, name='get_statistics'), 
+    path('student/<int:student_id>/to_passports/', views.to_passports, name='to_passports'),
 ]
 
 
