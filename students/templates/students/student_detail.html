@@ -9,6 +9,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تفاصيل الطالب</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+
+    <!-- إضافة مكتبة jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- فصل JavaScript في ملف خارجي -->
+    <script src="{% static 'js/student_detail.js' %}"></script>
 </head>
 
 <body>
@@ -16,23 +21,19 @@
     <div class="row">
         <!-- صورة الطالب -->
         <div class="col-md-4 text-center">
-
-
             {% if student.image and student.image.url %}
                 <img src="{{ student.image.url }}" class="rounded-circle img-fluid" alt="صورة الطالب" style="width: 150px; height: 150px;">
             {% else %}
                 <img src="{% static 'students/default.png' %}" class="rounded-circle img-fluid" alt="صورة افتراضية" style="width: 150px; height: 150px;">
             {% endif %}
-        
             
-
             <h6 class="st-na">
                 <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.gif" alt="{{ student.nationality.name }}">
                 {{ student.nationality.name }}
             </h6>
             <h5 class="mt-5 st-name">{{ student.first_name }}</h5>
 
-             <!-- أزرار تعديل وحذف الطالب -->
+            <!-- أزرار تعديل وحذف الطالب -->
             <div class="student-actions">
                 <a href="{% url 'student_edit' student.id %}" class="btn btn-primary">
                     <i class="fas fa-edit"></i>
@@ -50,8 +51,6 @@
                     <div class="card-header bg-primary text-white">
                         <h5 class="card-title">إدارة التوجيهات والمراسلات</h5>
                     </div>
-
-
                     
                     <div class="card-body">
                         <!-- القائمة المنسدلة -->
@@ -66,46 +65,15 @@
                         </div>
             
                         <!-- زر تنفيذ الإجراء -->
-                        <button class="btn btn-success btn-block mt-3" onclick="performAction()">
+                        <button class="btn btn-success btn-block mt-3" id="performActionBtn">
                             <i class="fas fa-play-circle"></i> تنفيذ الإجراء
                         </button>
+                        
+                        <!-- إضافة حقل مخفي لرقم الطالب -->
+                        <input type="hidden" id="studentId" value="{{ student.id }}">
                     </div>
                 </div>
             </div>
-            
-            <script>
-                function performAction() {
-                    const selectedAction = document.getElementById('actionDropdown').value;
-                    const studentId = {{ student.id }};
-            
-                    if (!selectedAction) {
-                        alert('الرجاء اختيار إجراء.');
-                        return;
-                    }
-            
-                    let url;
-                    switch (selectedAction) {
-                        case 'passports':
-                            url = `/student/${studentId}/to_passports/`;
-                            break;
-                        case 'security':
-                            url = `/student/${studentId}/to_security/`;
-                            break;
-                        case 'students_affairs':
-                            url = `/student/${studentId}/to_students_affairs/`;
-                            break;
-                        default:
-                            alert('إجراء غير معروف.');
-                            return;
-                    }
-            
-                    // توجيه المستخدم إلى الرابط المحدد
-                    window.location.href = url;
-                }
-            </script>
-
-
-
         </div>
         
         <div class="col-md-8">
@@ -126,7 +94,6 @@
                 <li class="nav-item">
                     <button class="nav-link" id="note-tab" data-bs-toggle="tab" data-bs-target="#note" type="button">سجل الملاحظات</button>
                 </li>
-
             </ul>
 
             <div class="tab-content mt-3">
@@ -139,7 +106,6 @@
                     <p><strong> المهنة : </strong> {{ student.job }}</p>
                     <p><strong>تاريخ الميلاد : </strong> {{ student.birth_date }}</p>
                     <p><strong> الحالة الإجتماعية : </strong> {{ student.get_marital_status_display }}</p>
-                    
                 </div>
 
                 <!-- الجوازات والإقامة -->
@@ -182,12 +148,10 @@
                     <p><strong>تاريخ إنتهاء إقامته :</strong> {{ student.companion_residence_end_date }}</p>
                 </div>
 
-                 <!-- سجل الملاحزات -->
+                 <!-- سجل الملاحظات -->
                  <div class="tab-pane fade" id="note">
                     <p><strong>الملاحظات :</strong> {{ student.note }}</p>
                 </div>
-
-                
             </div>
         </div>
     </div>
