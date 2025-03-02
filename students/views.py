@@ -39,9 +39,8 @@ def student_list(request):
 
 
 def student_detail(request, student_id):
-    student = Student.objects.get(id=student_id)
-    return render(request, 'student_detail.html', {'student': student})
-
+    student = get_object_or_404(Student, id=student_id)
+    return render(request, 'students/student_detail.html', {'student': student})
 
 
 

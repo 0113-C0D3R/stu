@@ -58,58 +58,76 @@
                     <button class="nav-link" id="passport-tab" data-bs-toggle="tab" data-bs-target="#passport" type="button">الجوازات والإقامة</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link" id="education-tab" data-bs-toggle="tab" data-bs-target="#education" type="button">التعليم</button>
+                    <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button">المعاملات</button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button">الوثائق</button>
+                    <button class="nav-link" id="companion-tab" data-bs-toggle="tab" data-bs-target="#companion" type="button">المرافقين</button>
                 </li>
+                <li class="nav-item">
+                    <button class="nav-link" id="note-tab" data-bs-toggle="tab" data-bs-target="#note" type="button">سجل الملاحظات</button>
+                </li>
+
             </ul>
 
             <div class="tab-content mt-3">
                 <!-- المعلومات الشخصية -->
                 <div class="tab-pane fade show active" id="personal">
-                    <p><strong>العمر:</strong> {{ student.birth_date|timesince }}</p>
-                    <p><strong>الجنس:</strong> {{ student.get_gender_display }}</p>
-                    <p><strong>البريد الإلكتروني:</strong> {{ student.email }}</p>
-                    <p><strong>رقم الهاتف:</strong> {{ student.phone }}</p>
-                    <p><strong>العنوان:</strong> {{ student.address }}</p>
-                    <p><strong>تاريخ الميلاد:</strong> {{ student.birth_date }}</p>
-                    <p><strong>البلد:</strong> {{ student.country }}</p>
+                    <p><strong>العمر : </strong> {{ student.birth_date|timesince }}</p>
+                    <p><strong>الجنس : </strong> {{ student.get_gender_display }}</p>
+                    <p><strong>اللقب :  </strong> {{ student.last_name }}</p>
+                    <p><strong>رقم الهاتف : </strong> {{ student.phone_number }}</p>
+                    <p><strong> المهنة : </strong> {{ student.job }}</p>
+                    <p><strong>تاريخ الميلاد : </strong> {{ student.birth_date }}</p>
+                    <p><strong> الحالة الإجتماعية : </strong> {{ student.get_marital_status_display }}</p>
                     
                 </div>
 
                 <!-- الجوازات والإقامة -->
                 <div class="tab-pane fade" id="passport">
-                    <p><strong>رقم الجواز:</strong> {{ student.passport_number }}</p>
-                    <p><strong>تاريخ الإصدار:</strong> {{ student.passport_issue_date }}</p>
-                    <p><strong>تاريخ الانتهاء:</strong> {{ student.passport_expiry_date }}</p>
-                    <p><strong>رقم الإقامة:</strong> {{ student.residency_number }}</p>
-                    <p><strong>تاريخ انتهاء الإقامة:</strong> {{ student.residency_expiry_date }}</p>
+                    <p><strong>رقم الجواز :</strong> {{ student.passport_number }}</p>
+                    <p><strong>الرقم المرجعي :</strong> {{ student.visa_number }}</p>
+                    <p><strong>مكان الإصدار : </strong> {{ student.place_of_issue }}</p>
+                    <p><strong> تاريخ إصدار الجواز  : </strong> {{ student.date_of_issued }}</p>
+                    <p><strong> تاريخ إنتهاء الجواز  : </strong> {{ student.end_date }}</p>
+                    <p><strong> رقم التسجيل : </strong> {{ student.registration_number }}</p>
+                    <p><strong>الغرض : </strong> {{ student.purpose }}</p>
+                    <p><strong>مكان الإصدار : </strong> {{ student.place_of_issue }}</p>
+                    <p><strong>مكان التسجيل : </strong> {{ student.registration_place }}</p>
+                    <p><strong>رقم التأشيرة :</strong> {{ student.visa_number }}</p>
+                    <p><strong>إسم الميناء</strong> {{ student.port_name }}</p>
+                    <p><strong>تاريخ التسجيل : </strong> {{ student.date_of_registration }}</p>
+                    <p><strong>مكان إصدار الإقامة :</strong> {{ student.place_of_issued_residence }}</p>
+                    <p><strong>رقم الإقامة :</strong> {{ student.residence_number }}</p>
+                    <p><strong>تاريخ إصدار الإقامة :</strong> {{ student.residence_issued_date }}</p>
+                    <p><strong>تاريخ إنتهاء الإقامة :</strong> {{ student.residence_end_date }}</p>
                 </div>
 
-                <!-- التعليم -->
-                <div class="tab-pane fade" id="education">
-                    <p><strong>الكلية:</strong> {{ student.college }}</p>
-                    <p><strong>التخصص:</strong> {{ student.major }}</p>
-                    <p><strong>المستوى الدراسي:</strong> {{ student.study_level }}</p>
-                    <p><strong>سنة الالتحاق:</strong> {{ student.enrollment_year }}</p>
-                    <p><strong>الحالة الدراسية:</strong> {{ student.study_status }}</p>
+                <!-- المعاملات -->
+                <div class="tab-pane fade" id="services">
+                    <p><strong>تاريخ الدخول :</strong> {{ student.entry_date }}</p>
+                    <p><strong>تاريخ المغادرة :</strong> {{ student.end_date }}</p>
+                    <p><strong>تاريخ التسجيل :</strong> {{ student.registration_date }}</p>
+                    <p><strong>تاريخ إنتهاء التسجيل :</strong> {{ student.end_registration_date }}</p>
+                    <p><strong>نوع المعاملة :</strong> {{ student.type_of_services }}</p>
+                    <p><strong>الجــهـــة :</strong> {{ student.issuing_authority }}</p>
                 </div>
 
-                <!-- الوثائق -->
-                <div class="tab-pane fade" id="documents">
-                    <p><strong>رقم الهوية:</strong> {{ student.id_number }}</p>
-                    <p><strong>نوع الهوية:</strong> {{ student.id_type }}</p>
-                    <p><strong>تاريخ انتهاء الهوية:</strong> {{ student.id_expiry_date }}</p>
-                    <p><strong>المستندات المرفقة:</strong> 
-                        {% if student.documents %}
-                            <a href="{{ student.documents.url }}" target="_blank">عرض المستند</a>
-                        {% else %}
-                            لا توجد مستندات مرفقة
-                        {% endif %}
-                    </p>
-                    <p><strong>ملاحظات:</strong> {{ student.id_expiry_date }}</p>
+                <!-- المرافقين -->
+                <div class="tab-pane fade" id="companion">
+                    <p><strong>إسم المرافق :</strong> {{ student.companion_name }}</p>
+                    <p><strong>جنسيتـه :</strong> {{ student.companion_nationality }}</p>
+                    <p><strong>صلة القرابة :</strong> {{ student.companion_relationship }}</p>
+                    <p><strong>رقم جوازه :</strong> {{ student.companion_passport_number }}</p>
+                    <p><strong>رقم إقامته :</strong> {{ student.companion_residence_number }}</p>
+                    <p><strong>تاريخ إنتهاء إقامته :</strong> {{ student.companion_residence_end_date }}</p>
                 </div>
+
+                 <!-- سجل الملاحزات -->
+                 <div class="tab-pane fade" id="note">
+                    <p><strong>الملاحظات :</strong> {{ student.note }}</p>
+                </div>
+
+                
             </div>
         </div>
     </div>

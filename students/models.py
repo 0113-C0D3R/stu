@@ -2,21 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
 
-
-
 class Student(models.Model):
     # الحقول الحالية
     GENDER_CHOICES = [
         ('M', 'ذكر'),
         ('F', 'أنثى'),
     ]
-    name = models.CharField(max_length=100)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-
-    def get_gender_display(self):
-        return dict(self.GENDER_CHOICES).get(self.gender, self.gender)
-        
-    
     nationality = CountryField(verbose_name="الجنسية")  # استخدام CountryField
 
     MARITAL_STATUS_CHOICES = [
@@ -59,8 +50,6 @@ class Student(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name="تاريخ المغادرة")
     registration_date = models.DateField(blank=True, null=True, verbose_name="تاريخ التسجيل")
     end_registration_date = models.DateField(blank=True, null=True, verbose_name="تاريخ انتهاء التسجيل")
-
-    # General Information
     type_of_services = models.CharField(max_length=100, blank=True, null=True, verbose_name="نوع الخدمات")
     issuing_authority = models.CharField(max_length=100, blank=True, null=True, verbose_name="الجهة المصدرة")
     phone_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="رقم الهاتف")

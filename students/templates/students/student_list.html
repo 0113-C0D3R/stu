@@ -2,7 +2,8 @@
 {% extends "students/base.html" %}
 {% load static %}
 {% block content %}
-    
+<link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %} ?v=1.0">
+
 <form method="GET" action="{% url 'student_list' %}" class="mb-3">
     <div class="input-group">
         <input type="text" name="q" class="form-control" placeholder="ابحث عن طالب..." value="{{ request.GET.q }}">
