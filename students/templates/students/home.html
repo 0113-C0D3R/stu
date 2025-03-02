@@ -1,7 +1,157 @@
-{% extends "students/base.html" %}
 
+{% extends "students/base.html" %}
+{% load static %}
 {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %} ?v=1.1">
+
     <h2>مرحبًا بك في نظام إدارة الطلاب</h2>
-    <a href="{% url 'add_student' %}">إضافة طالب جديد</a>
-    <a href="{% url 'student_list' %}">عرض جميع الطلاب</a>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">عدد الطلاب حسب الجنس</div>
+                <div class="card-body">
+                    <canvas id="genderChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">عدد الطلاب حسب الجنسية</div>
+                <div class="card-body">
+                    <canvas id="nationalityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+    <a href="{% url 'add_student' %}" class="btn btn-primary mt-4">إضافة طالب جديد</a>
+    <a href="{% url 'student_list' %}" class="btn btn-secondary mt-4">عرض جميع الطلاب</a>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // بيانات الرسم البياني الدائري (الجنس)
+            const genderData = {
+                labels: ['ذكور', 'إناث'],
+                datasets: [{
+                    data: [{{ male_students }}, {{ female_students }}],
+                    backgroundColor: ['#36A2EB', '#FF6384'],
+                    borderWidth: 1,  // عرض الحدود
+                }]
+            };
+    
+            const genderChart = new Chart(document.getElementById('genderChart'), {
+                type: 'pie',
+                data: genderData,
+                options: {
+                    responsive: true,  // جعل الرسم البياني متجاوبًا
+                    maintainAspectRatio: false,  // عدم الحفاظ على النسبة الثابتة
+                    plugins: {
+                        legend: {
+                            position: 'bottom',  // وضع وسيلة الإيضاح في الأسفل
+                        },
+                        title: {
+                            display: true,
+                            text: 'عدد الطلاب حسب الجنس',  // عنوان الرسم البياني
+                            font: {
+                                family: 'Tahoma',  // نوع الخط (يجب أن يكون الخط مدعومًا في المتصفح)
+                                size: 14,  // حجم الخط
+                                weight: 'normal',  // سمك الخط (عريض)
+                                color: '#333',  // لون الخط
+                            }
+                        }
+                    }
+                }
+            });
+    
+            // بيانات الرسم البياني العمودي (الجنسية)
+            const nationalityData = {
+                labels: {{ nationality_labels|safe }},  // قائمة الجنسيات
+                datasets: [{
+                    label: 'عدد الطلاب',
+                    data: {{ nationality_counts|safe }},  // عدد الطلاب حسب الجنسية
+                    backgroundColor: '#4BC0C0',
+                    borderWidth: 1,  // عرض الحدود
+                }]
+            };
+    
+            const nationalityChart = new Chart(document.getElementById('nationalityChart'), {
+                type: 'bar',
+                data: nationalityData,
+                options: {
+                    responsive: true,  // جعل الرسم البياني متجاوبًا
+                    maintainAspectRatio: false,  // عدم الحفاظ على النسبة الثابتة
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'عدد الطلاب',  // عنوان المحور العمودي
+                                font: {
+                                family: 'Tahoma',  // نوع الخط (يجب أن يكون الخط مدعومًا في المتصفح)
+                                size: 14,  // حجم الخط
+                                weight: 'normal',  // سمك الخط (عريض)
+                                color: '#333',  // لون الخط
+                            }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                //text: 'الجنسية',  // عنوان المحور الأفقي
+                                font: {
+                                family: 'Tahoma',  // نوع الخط (يجب أن يكون الخط مدعومًا في المتصفح)
+                                size: 14,  // حجم الخط
+                                weight: 'normal',  // سمك الخط (عريض)
+                                color: '#333',  // لون الخط
+                            }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false,  // إخفاء وسيلة الإيضاح (غير ضرورية للرسم العمودي)
+                        },
+                        title: {
+                            display: true,
+                            text: 'عدد الطلاب حسب الجنسية',  // عنوان الرسم البياني
+                            font: {
+                                family: 'Tahoma',  // نوع الخط (يجب أن يكون الخط مدعومًا في المتصفح)
+                                size: 14,  // حجم الخط
+                                weight: 'normal',  // سمك الخط (عريض)
+                                color: '#333',  // لون الخط
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+
+
+
+    <script>
+        function updateCharts() {
+            fetch('/get_statistics/')  // رابط لجلب البيانات
+                .then(response => response.json())
+                .then(data => {
+                    // تحديث الرسم البياني الدائري (الجنس)
+                    genderChart.data.datasets[0].data = [data.male_students, data.female_students];
+                    genderChart.update();
+
+                    // تحديث الرسم البياني العمودي (الجنسية)
+                    nationalityChart.data.labels = data.nationality_labels;
+                    nationalityChart.data.datasets[0].data = data.nationality_counts;
+                    nationalityChart.update();
+                });
+        }
+
+        // تحديث البيانات كل 10 ثوانٍ
+        setInterval(updateCharts, 10000);
+    </script>
+
+
 {% endblock %}

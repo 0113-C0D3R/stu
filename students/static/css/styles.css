@@ -20,6 +20,29 @@ table {
     text-align: right;  /* محاذاة النص في حقول الإدخال */
 }
 
+
+/*الصفحية الرئيسية تحديد حجم الرسوم البيانية */
+#genderChart, #nationalityChart {
+    width: 100% !important;  /* العرض الكامل للعنصر الأب */
+    height: 300px !important;  /* ارتفاع ثابت */
+}
+
+/* تحسين تنسيق الصفحة */
+.card {
+    margin-bottom: 20px;  /* تباعد بين البطاقات */
+}
+
+.card-header {
+    font-size: 1.2em;  /* حجم خط أكبر لعناوين البطاقات */
+    font-weight: bold;  /* نص عريض */
+}
+
+.card-body {
+    padding: 20px;  /* تباعد داخلي */
+}
+
+
+
 /* صفحة إظهار البيانات الشخصية للطالب */
 h6.st-na {
     margin-top: 16px;
@@ -48,4 +71,6 @@ img.img-thumbnail {
     height: 50px;
     object-fit: cover;
 }
+
+
 

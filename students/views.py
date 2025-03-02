@@ -8,6 +8,9 @@ from django.shortcuts import render, get_object_or_404  # استيراد get_obj
 from django.contrib import messages
 from django.urls import reverse
 from students.models import Student
+from django.http import JsonResponse
+from collections import Counter
+from django_countries import countries
 
 # عرض نموذج تسجيل الدخول
 def home(request):
@@ -17,10 +20,10 @@ def home(request):
 @login_required
 def add_student(request):
     if request.method == "POST":
-        form = StudentForm(request.POST, request.FILES)  # تأكد من تمرير request.FILES
+        form = StudentForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            return redirect('student_list')  # إعادة التوجيه بعد الحفظ
+            return redirect('student_list')
     else:
         form = StudentForm()
     
@@ -75,4 +78,49 @@ class CustomLoginView(LoginView):
 
 
 
+# def get_statistics(request):
+def get_statistics(request):
+    # بيانات الجنس
+    male_students = Student.objects.filter(gender='M').count()
+    female_students = Student.objects.filter(gender='F').count()
 
+    # بيانات الجنسية
+    nationalities = Student.objects.values_list('nationality', flat=True)
+    nationality_counts = Counter(nationalities)
+    
+    # تحويل رموز الدول إلى أسماء كاملة
+    nationality_labels = [countries.name(code) for code in nationality_counts.keys()]
+    nationality_counts = list(nationality_counts.values())
+
+    data = {
+        'male_students': male_students,
+        'female_students': female_students,
+        'nationality_labels': nationality_labels,
+        'nationality_counts': nationality_counts,
+    }
+
+    return JsonResponse(data)
+
+
+
+def home_with_statistics(request):
+    # بيانات الجنس
+    male_students = Student.objects.filter(gender='M').count()
+    female_students = Student.objects.filter(gender='F').count()
+
+    # بيانات الجنسية
+    nationalities = Student.objects.values_list('nationality', flat=True)
+    nationality_counts = Counter(nationalities)
+    
+    # تحويل رموز الدول إلى أسماء كاملة
+    nationality_labels = [countries.name(code) for code in nationality_counts.keys()]
+    nationality_counts = list(nationality_counts.values())
+
+    context = {
+        'male_students': male_students,
+        'female_students': female_students,
+        'nationality_labels': nationality_labels,
+        'nationality_counts': nationality_counts,
+    }
+
+    return render(request, 'students/home.html', context)
