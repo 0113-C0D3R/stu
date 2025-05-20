@@ -12,7 +12,8 @@ from django.http import JsonResponse
 from collections import Counter
 from django_countries import countries
 
-# عرض نموذج تسجيل الدخول
+
+@login_required            # هذا يضمن إعادة التوجيه إلى صفحة /accounts/login/ إذا لم يكن المستخدم مسجّل دخول
 def home(request):
     return render(request, 'students/home.html')
 
@@ -77,7 +78,7 @@ class CustomLoginView(LoginView):
     template_name = 'students/login.html'
 
 
-
+@login_required
 # def get_statistics(request):
 def get_statistics(request):
     # بيانات الجنس
@@ -102,7 +103,7 @@ def get_statistics(request):
     return JsonResponse(data)
 
 
-
+@login_required
 def home_with_statistics(request):
     # بيانات الجنس
     male_students = Student.objects.filter(gender='M').count()
@@ -129,3 +130,4 @@ def home_with_statistics(request):
 def to_passports(request, student_id):
     student = get_object_or_404(Student, id=student_id)
     return render(request, 'students/passport_renewal.html', {'student': student})
+

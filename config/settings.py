@@ -157,3 +157,11 @@ STATICFILES_DIRS = [
 ]
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5MB
+
+
+# اسم مسار صفحة تسجيل الدخول كما في urls.py
+LOGIN_URL = 'login'                  
+
+# بعد نجاح تسجيل الدخول سيتم توجيه المستخدم إلى هذا المسار
+LOGIN_REDIRECT_URL = 'home'
+
