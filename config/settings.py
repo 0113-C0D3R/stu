@@ -165,3 +165,5 @@ LOGIN_URL = 'login'
 # بعد نجاح تسجيل الدخول سيتم توجيه المستخدم إلى هذا المسار
 LOGIN_REDIRECT_URL = 'home'
 
+# بعد تسجيل الخروج، أرسل المستخدم إلى صفحة تسجيل الدخول
+LOGOUT_REDIRECT_URL = 'login'

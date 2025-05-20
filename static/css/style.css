@@ -1,0 +1,49 @@
+/* تنسيقات عامة */
+body {
+    font-family: 'Tajawal', sans-serif;  /* استخدام خط عربي */
+    text-align: right;  /* محاذاة النص لليمين */
+}
+
+/* تحسين شريط التنقل */
+.navbar-nav {
+    margin-right: auto;  /* محاذاة العناصر لليمين */
+}
+
+/* تحسين الجداول */
+table {
+    direction: rtl;  /* اتجاه الجداول من اليمين لليسار */
+    text-align: right;  /* محاذاة النص داخل الجداول */
+}
+
+/* تحسين النماذج */
+.form-control {
+    text-align: right;  /* محاذاة النص في حقول الإدخال */
+}
+
+h6.st-na {
+    margin-top: 16px;
+}
+
+
+/* تخصيص مظهر الفورم إذا رغبت */
+.logout-form {
+  display: inline-block;    /* يبقيه بجانب العناصر الأخرى */
+  margin-left: 1rem;        /* مسافة عن عناصر القائمة */
+}
+
+/* تنسيق الزر */
+.logout-button {
+  background-color: #e74c3c;    /* لون أحمر جذاب */
+  color: white;                 /* نص أبيض */
+  border: none;                 /* إزالة إطار افتراضي */
+  padding: 0.5rem 1rem;         /* حشوة داخلية */
+  font-size: 1rem;              /* حجم خط مناسب */
+  border-radius: 0.25rem;       /* زوايا منحنية */
+  cursor: pointer;              /* تأشير الفأرة */
+  transition: background-color 0.2s ease;
+}
+
+/* تأثير عند المرور بالماوس */
+.logout-button:hover {
+  background-color: #c0392b;    /* تدرّج اللون عند المرور */
+}
