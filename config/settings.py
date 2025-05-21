@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'students',  # التطبيق الجديد
     'crispy_forms',  # لدعم Django Crispy Forms
     'crispy_bootstrap5',
+    'widget_tweaks',
 ]
 
 # تحديد مكتبة crispy المستخدمة

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+{% load widget_tweaks %}
+<div class="container mt-5" style="max-width: 400px;">
+  <h2 class="mb-4 text-center">تسجيل الدخول</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+    <div class="mb-3">
+      <label for="id_username" class="form-label">اسم المستخدم</label>
+      {{ form.username|add_class:"form-control" }}
+      {% if form.username.errors %}
+        <div class="text-danger small">{{ form.username.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="mb-3">
+      <label for="id_password" class="form-label">كلمة المرور</label>
+      {{ form.password|add_class:"form-control" }}
+      {% if form.password.errors %}
+        <div class="text-danger small">{{ form.password.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="form-check mb-3">
+      {{ form.remember_me|default_if_none:"" }} <!-- إذا أضفت حقل remember_me لاحقاً -->
+      <label class="form-check-label" for="id_remember_me">تذكّرني</label>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">دخول</button>
+  </form>
+  <div class="mt-3 text-center">
+    <a href="{% url 'password_reset' %}">نسيت كلمة المرور؟</a>
+  </div>
+</div>
+{% endblock %}
