@@ -2,22 +2,60 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<h2>إضافة طالب</h2>
-<form method="post" enctype="multipart/form-data">  <!-- تأكد من وجود enctype -->
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-primary">حفظ الطالب</button>
-</form>
+  <h2>إضافة طالب</h2>
 
-    <!-- تفعيل Flatpickr -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            flatpickr(".flatpickr", {
-                dateFormat: "Y-m-d",  // تنسيق التاريخ
-                defaultDate: "today", // تعيين اليوم كتاريخ افتراضي
-            });
-        });
-    </script>
+  <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      {# ======== حقول بيانات الطالب ======== #}
+      {{ student_form|crispy }}
+
+      <hr class="my-4">
+
+      {# ======== قسم رفع المستندات المرتبطة بالطالب ======== #}
+      <h4 class="mt-4">المستندات المتعلقة بالطالب</h4>
+
+      <!-- ملف إدارة الـ InlineFormSet -->
+      {{ document_formset.management_form }}
+
+      {% for doc_form in document_formset.forms %}
+        <div class="row mb-3 border rounded p-3">
+          <div class="col-md-3">
+            <label for="{{ doc_form.doc_type.id_for_label }}" class="form-label">نوع المستند</label>
+            {{ doc_form.doc_type }}
+            {{ doc_form.doc_type.errors }}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ doc_form.file.id_for_label }}" class="form-label">رفع الملف</label>
+            {{ doc_form.file }}
+            {{ doc_form.file.errors }}
+          </div>
+          <div class="col-md-4">
+            <label for="{{ doc_form.caption.id_for_label }}" class="form-label">الوصف التوضيحي</label>
+            {{ doc_form.caption }}
+            {{ doc_form.caption.errors }}
+          </div>
+          {% if doc_form.instance.pk %}
+            <div class="col-md-1 d-flex align-items-end">
+              <div class="form-check">
+                {{ doc_form.DELETE }}
+                <label class="form-check-label" for="{{ doc_form.DELETE.id_for_label }}">حذف</label>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <button type="submit" class="btn btn-primary">حفظ الطالب</button>
+  </form>
+
+  <!-- تفعيل Flatpickr -->
+  <script>
+      document.addEventListener("DOMContentLoaded", function() {
+          flatpickr(".flatpickr", {
+              dateFormat: "Y-m-d",  // تنسيق التاريخ
+              defaultDate: "today", // تعيين اليوم كتاريخ افتراضي
+          });
+      });
+  </script>
 {% endblock %}
-
-

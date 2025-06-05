@@ -2,159 +2,199 @@
 {% load static %}
 {% block content %}
 
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تفاصيل الطالب</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}">
+<div class="container mt-4">
+  <div class="row">
+    <!-- صورة الطالب -->
+    <div class="col-md-4 text-center">
+      {% if student.image and student.image.url %}
+        <img src="{{ student.image.url }}" class="rounded-circle img-fluid" alt="صورة الطالب" style="width: 150px; height: 150px;">
+      {% else %}
+        <img src="{% static 'students/default.png' %}" class="rounded-circle img-fluid" alt="صورة افتراضية" style="width: 150px; height: 150px;">
+      {% endif %}
 
-    <!-- إضافة مكتبة jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- فصل JavaScript في ملف خارجي -->
-    <script src="{% static 'js/student_detail.js' %}"></script>
-</head>
+      <h6 class="st-na mt-2">
+        <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.gif" alt="{{ student.nationality.name }}">
+        {{ student.nationality.name }}
+      </h6>
+      <h5 class="mt-3 st-name">{{ student.first_name }}</h5>
 
-<body>
-    <div class="container mt-4">
-    <div class="row">
-        <!-- صورة الطالب -->
-        <div class="col-md-4 text-center">
-            {% if student.image and student.image.url %}
-                <img src="{{ student.image.url }}" class="rounded-circle img-fluid" alt="صورة الطالب" style="width: 150px; height: 150px;">
-            {% else %}
-                <img src="{% static 'students/default.png' %}" class="rounded-circle img-fluid" alt="صورة افتراضية" style="width: 150px; height: 150px;">
-            {% endif %}
-            
-            <h6 class="st-na">
-                <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.gif" alt="{{ student.nationality.name }}">
-                {{ student.nationality.name }}
-            </h6>
-            <h5 class="mt-5 st-name">{{ student.first_name }}</h5>
+      <!-- أزرار تعديل وحذف الطالب -->
+      <div class="student-actions mt-3">
+        <a href="{% url 'student_edit' student.id %}" class="btn btn-primary me-1">
+          <i class="fas fa-edit"></i>
+        </a>
+        <form action="{% url 'delete_student' student.id %}" method="post" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا الطالب؟');">
+            <i class="fas fa-trash"></i>
+          </button>
+        </form>
+      </div>
 
-            <!-- أزرار تعديل وحذف الطالب -->
-            <div class="student-actions">
-                <a href="{% url 'student_edit' student.id %}" class="btn btn-primary">
-                    <i class="fas fa-edit"></i>
-                </a>
-                
-                <form action="{% url 'delete_student' student.id %}" method="post" class="delete-form">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من حذف هذا الطالب؟');">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </form>
+      <div class="mt-4">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="card-title">إدارة التوجيهات والمراسلات</h5>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="actionDropdown" class="fw-bold">اختر إجراءً:</label>
+              <select class="form-control" id="actionDropdown">
+                <option value="">اختر إجراءً...</option>
+                <option value="passports">إلى الجوازات</option>
+                <option value="security">إلى الأمن العام</option>
+                <option value="students_affairs">إلى شؤون الطلاب</option>
+              </select>
             </div>
-            <div class="container mt-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="card-title">إدارة التوجيهات والمراسلات</h5>
-                    </div>
-                    
-                    <div class="card-body">
-                        <!-- القائمة المنسدلة -->
-                        <div class="form-group">
-                            <label for="actionDropdown" class="font-weight-bold">اختر إجراءً:</label>
-                            <select class="form-control" id="actionDropdown">
-                                <option value="">اختر إجراءً...</option>
-                                <option value="passports">إلى الجوازات</option>
-                                <option value="security">إلى الأمن العام</option>
-                                <option value="students_affairs">إلى شؤون الطلاب</option>
-                            </select>
-                        </div>
-            
-                        <!-- زر تنفيذ الإجراء -->
-                        <button class="btn btn-success btn-block mt-3" id="performActionBtn">
-                            <i class="fas fa-play-circle"></i> تنفيذ الإجراء
-                        </button>
-                        
-                        <!-- إضافة حقل مخفي لرقم الطالب -->
-                        <input type="hidden" id="studentId" value="{{ student.id }}">
-                    </div>
-                </div>
-            </div>
+
+            <button class="btn btn-success btn-block mt-3" id="performActionBtn">
+              <i class="fas fa-play-circle"></i> تنفيذ الإجراء
+            </button>
+            <input type="hidden" id="studentId" value="{{ student.id }}">
+          </div>
         </div>
-        
-        <div class="col-md-8">
-            <!-- التبويبات -->
-            <ul class="nav nav-tabs" id="studentTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button">المعلومات الشخصية</button>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      <!-- التبويبات -->
+      <ul class="nav nav-tabs" id="studentTabs" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button">المعلومات الشخصية</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="passport-tab" data-bs-toggle="tab" data-bs-target="#passport" type="button">الجوازات والإقامة</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button">المعاملات</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="companion-tab" data-bs-toggle="tab" data-bs-target="#companion" type="button">المرافقين</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button">المستندات</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" id="note-tab" data-bs-toggle="tab" data-bs-target="#note" type="button">سجل الملاحظات</button>
+        </li>
+      </ul>
+
+      <div class="tab-content mt-3">
+        <!-- المعلومات الشخصية -->
+        <div class="tab-pane fade show active" id="personal">
+          <p><strong>العمر :</strong> {{ student.birth_date|timesince }}</p>
+          <p><strong>الجنس :</strong> {{ student.get_gender_display }}</p>
+          <p><strong>اللقب :</strong> {{ student.last_name }}</p>
+          <p><strong>رقم الهاتف :</strong> {{ student.phone_number }}</p>
+          <p><strong>المهنة :</strong> {{ student.job }}</p>
+          <p><strong>تاريخ الميلاد :</strong> {{ student.birth_date }}</p>
+          <p><strong>الحالة الاجتماعية :</strong> {{ student.get_marital_status_display }}</p>
+        </div>
+
+        <!-- الجوازات والإقامة -->
+        <div class="tab-pane fade" id="passport">
+          <p><strong>رقم الجواز :</strong> {{ student.passport_number }}</p>
+          <p><strong>الرقم المرجعي :</strong> {{ student.visa_number }}</p>
+          <p><strong>مكان الإصدار :</strong> {{ student.place_of_issue }}</p>
+          <p><strong>تاريخ إصدار الجواز :</strong> {{ student.date_of_issued }}</p>
+          <p><strong>تاريخ انتهاء الجواز :</strong> {{ student.end_date }}</p>
+          <p><strong>رقم التسجيل :</strong> {{ student.registration_number }}</p>
+          <p><strong>الغرض :</strong> {{ student.purpose }}</p>
+          <p><strong>مكان التسجيل :</strong> {{ student.registration_place }}</p>
+          <p><strong>رقم التأشيرة :</strong> {{ student.visa_number }}</p>
+          <p><strong>اسم الميناء :</strong> {{ student.port_name }}</p>
+          <p><strong>تاريخ التسجيل :</strong> {{ student.date_of_registration }}</p>
+          <p><strong>مكان إصدار الإقامة :</strong> {{ student.place_of_issued_residence }}</p>
+          <p><strong>رقم الإقامة :</strong> {{ student.residence_number }}</p>
+          <p><strong>تاريخ إصدار الإقامة :</strong> {{ student.residence_issued_date }}</p>
+          <p><strong>تاريخ انتهاء الإقامة :</strong> {{ student.residence_end_date }}</p>
+        </div>
+
+        <!-- المعاملات -->
+        <div class="tab-pane fade" id="services">
+          <p><strong>تاريخ الدخول :</strong> {{ student.entry_date }}</p>
+          <p><strong>تاريخ المغادرة :</strong> {{ student.end_date }}</p>
+          <p><strong>تاريخ التسجيل :</strong> {{ student.registration_date }}</p>
+          <p><strong>تاريخ انتهاء التسجيل :</strong> {{ student.end_registration_date }}</p>
+          <p><strong>نوع المعاملة :</strong> {{ student.type_of_services }}</p>
+          <p><strong>الجهة :</strong> {{ student.issuing_authority }}</p>
+        </div>
+
+        <!-- المرافقين -->
+        <div class="tab-pane fade" id="companion">
+          <p><strong>اسم المرافق :</strong> {{ student.companion_name }}</p>
+          <p><strong>جنسية المرافق :</strong> {{ student.companion_nationality }}</p>
+          <p><strong>صلة القرابة :</strong> {{ student.companion_relationship }}</p>
+          <p><strong>رقم جواز المرافق :</strong> {{ student.companion_passport_number }}</p>
+          <p><strong>رقم إقامة المرافق :</strong> {{ student.companion_residence_number }}</p>
+          <p><strong>تاريخ انتهاء إقامة المرافق :</strong> {{ student.companion_residence_end_date }}</p>
+        </div>
+
+        <!-- المستندات -->
+        <div class="tab-pane fade" id="documents">
+          {% if student.documents.exists %}
+            <ul class="list-group">
+              {% for doc in student.documents.all %}
+                <li class="list-group-item">
+                  <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                      <!-- Thumbnail مع data-full-url لفتح الصورة داخل lightbox -->
+                      <img src="{{ doc.file.url }}"
+                           class="img-thumbnail doc-thumbnail"
+                           style="width: 80px; height: auto; cursor: pointer;"
+                           data-full-url="{{ doc.file.url }}"
+                           alt="مستند">
+                    </div>
+                    <div class="col-md-10">
+                      <strong>نوع المستند:</strong> {{ doc.get_doc_type_display }}<br>
+                      {% if doc.caption %}
+                        <strong>الوصف التوضيحي:</strong> {{ doc.caption }}<br>
+                      {% endif %}
+                      <small class="text-muted">تاريخ الرفع: {{ doc.uploaded_at|date:"Y-m-d H:i" }}</small>
+                    </div>
+                  </div>
                 </li>
-                <li class="nav-item">
-                    <button class="nav-link" id="passport-tab" data-bs-toggle="tab" data-bs-target="#passport" type="button">الجوازات والإقامة</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link" id="services-tab" data-bs-toggle="tab" data-bs-target="#services" type="button">المعاملات</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link" id="companion-tab" data-bs-toggle="tab" data-bs-target="#companion" type="button">المرافقين</button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link" id="note-tab" data-bs-toggle="tab" data-bs-target="#note" type="button">سجل الملاحظات</button>
-                </li>
+              {% endfor %}
             </ul>
-
-            <div class="tab-content mt-3">
-                <!-- المعلومات الشخصية -->
-                <div class="tab-pane fade show active" id="personal">
-                    <p><strong>العمر : </strong> {{ student.birth_date|timesince }}</p>
-                    <p><strong>الجنس : </strong> {{ student.get_gender_display }}</p>
-                    <p><strong>اللقب :  </strong> {{ student.last_name }}</p>
-                    <p><strong>رقم الهاتف : </strong> {{ student.phone_number }}</p>
-                    <p><strong> المهنة : </strong> {{ student.job }}</p>
-                    <p><strong>تاريخ الميلاد : </strong> {{ student.birth_date }}</p>
-                    <p><strong> الحالة الإجتماعية : </strong> {{ student.get_marital_status_display }}</p>
-                </div>
-
-                <!-- الجوازات والإقامة -->
-                <div class="tab-pane fade" id="passport">
-                    <p><strong>رقم الجواز :</strong> {{ student.passport_number }}</p>
-                    <p><strong>الرقم المرجعي :</strong> {{ student.visa_number }}</p>
-                    <p><strong>مكان الإصدار : </strong> {{ student.place_of_issue }}</p>
-                    <p><strong> تاريخ إصدار الجواز  : </strong> {{ student.date_of_issued }}</p>
-                    <p><strong> تاريخ إنتهاء الجواز  : </strong> {{ student.end_date }}</p>
-                    <p><strong> رقم التسجيل : </strong> {{ student.registration_number }}</p>
-                    <p><strong>الغرض : </strong> {{ student.purpose }}</p>
-                    <p><strong>مكان الإصدار : </strong> {{ student.place_of_issue }}</p>
-                    <p><strong>مكان التسجيل : </strong> {{ student.registration_place }}</p>
-                    <p><strong>رقم التأشيرة :</strong> {{ student.visa_number }}</p>
-                    <p><strong>إسم الميناء</strong> {{ student.port_name }}</p>
-                    <p><strong>تاريخ التسجيل : </strong> {{ student.date_of_registration }}</p>
-                    <p><strong>مكان إصدار الإقامة :</strong> {{ student.place_of_issued_residence }}</p>
-                    <p><strong>رقم الإقامة :</strong> {{ student.residence_number }}</p>
-                    <p><strong>تاريخ إصدار الإقامة :</strong> {{ student.residence_issued_date }}</p>
-                    <p><strong>تاريخ إنتهاء الإقامة :</strong> {{ student.residence_end_date }}</p>
-                </div>
-
-                <!-- المعاملات -->
-                <div class="tab-pane fade" id="services">
-                    <p><strong>تاريخ الدخول :</strong> {{ student.entry_date }}</p>
-                    <p><strong>تاريخ المغادرة :</strong> {{ student.end_date }}</p>
-                    <p><strong>تاريخ التسجيل :</strong> {{ student.registration_date }}</p>
-                    <p><strong>تاريخ إنتهاء التسجيل :</strong> {{ student.end_registration_date }}</p>
-                    <p><strong>نوع المعاملة :</strong> {{ student.type_of_services }}</p>
-                    <p><strong>الجــهـــة :</strong> {{ student.issuing_authority }}</p>
-                </div>
-
-                <!-- المرافقين -->
-                <div class="tab-pane fade" id="companion">
-                    <p><strong>إسم المرافق :</strong> {{ student.companion_name }}</p>
-                    <p><strong>جنسيتـه :</strong> {{ student.companion_nationality }}</p>
-                    <p><strong>صلة القرابة :</strong> {{ student.companion_relationship }}</p>
-                    <p><strong>رقم جوازه :</strong> {{ student.companion_passport_number }}</p>
-                    <p><strong>رقم إقامته :</strong> {{ student.companion_residence_number }}</p>
-                    <p><strong>تاريخ إنتهاء إقامته :</strong> {{ student.companion_residence_end_date }}</p>
-                </div>
-
-                 <!-- سجل الملاحظات -->
-                 <div class="tab-pane fade" id="note">
-                    <p><strong>الملاحظات :</strong> {{ student.note }}</p>
-                </div>
-            </div>
+          {% else %}
+            <p>لا توجد مستندات مرفوعة لهذا الطالب.</p>
+          {% endif %}
         </div>
+
+        <!-- سجل الملاحظات -->
+        <div class="tab-pane fade" id="note">
+          <p><strong>الملاحظات :</strong> {{ student.note }}</p>
+        </div>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- مودال Lightbox لعرض الصورة بحجم أكبر -->
+<div class="modal fade" id="lightboxModal" tabindex="-1" aria-labelledby="lightboxLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-body text-center p-0">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        <img src="" id="lightboxImage" class="img-fluid" style="max-height: 90vh;" alt="عرض كبير">
+      </div>
     </div>
-</body>
+  </div>
+</div>
+
+<!-- سكربت بسيط لفتح المودال وتعيين src للصورة -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll('.doc-thumbnail').forEach(function(thumbnail) {
+      thumbnail.addEventListener('click', function() {
+        var fullUrl = this.getAttribute('data-full-url');
+        var lightboxImg = document.getElementById('lightboxImage');
+        lightboxImg.setAttribute('src', fullUrl);
+        var lightboxModal = new bootstrap.Modal(document.getElementById('lightboxModal'));
+        lightboxModal.show();
+      });
+    });
+  });
+</script>
+
 {% endblock %}

@@ -3,12 +3,16 @@ from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
 
 class Student(models.Model):
-    # الحقول الحالية
+
+    # … (حقول الطالب كما كانت) …
+    image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
+    note = models.TextField(blank=True, null=True, verbose_name="ملاحظة")
+
     GENDER_CHOICES = [
         ('M', 'ذكر'),
         ('F', 'أنثى'),
     ]
-    nationality = CountryField(verbose_name="الجنسية")  # استخدام CountryField
+    nationality = CountryField(verbose_name="الجنسية")
 
     MARITAL_STATUS_CHOICES = [
         ('single', 'أعزب'),
@@ -24,7 +28,7 @@ class Student(models.Model):
 
     image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
     
-    nationality = CountryField(verbose_name="الجنسية") 
+    nationality = CountryField(verbose_name="الجنسية")
     job = models.CharField(max_length=100, verbose_name="الوظيفة", blank=True, null=True)
     marital_status = models.CharField(max_length=10, choices=MARITAL_STATUS_CHOICES, verbose_name="الحالة الاجتماعية")
 
@@ -62,11 +66,52 @@ class Student(models.Model):
     companion_residence_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم إقامة المرافق")
     companion_residence_end_date = models.DateField(blank=True, null=True, verbose_name="تاريخ انتهاء إقامة المرافق")
 
-    # Note
     note = models.TextField(blank=True, null=True, verbose_name="ملاحظة")
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+# ----------------------------
+# إضافة موديل Document أسفل Student
+# ----------------------------
+class Document(models.Model):
+    DOC_TYPES = [
+        ('passport', 'جواز سفر'),
+        ('residence', 'إقامة'),
+        ('id_card', 'هوية شخصية'),
+        ('other', 'أخرى'),
+    ]
+
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='documents',
+        verbose_name="الطالب"
+    )
+    doc_type = models.CharField(
+        max_length=20,
+        choices=DOC_TYPES,
+        default='other',
+        verbose_name="نوع المستند"
+    )
+    file = models.FileField(
+        upload_to='student_docs/%Y/%m/',
+        verbose_name="الملف"
+    )
+    caption = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="الوصف التوضيحي"
+    )
+    uploaded_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاريخ الرفع"
+    )
+
+    def __str__(self):
+        return f"{self.student.first_name} {self.student.last_name} – {self.get_doc_type_display()}"
+        
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [
@@ -76,7 +121,6 @@ class CustomUser(AbstractUser):
     ]
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='viewer')
 
-
     def is_admin(self):
         return self.role == 'admin'
 
@@ -85,5 +129,3 @@ class CustomUser(AbstractUser):
 
     def is_viewer(self):
         return self.role == 'viewer'
-
-
