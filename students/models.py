@@ -4,6 +4,10 @@ from django_countries.fields import CountryField
 
 class Student(models.Model):
 
+    class Meta:
+        verbose_name        = "الطالب"
+        verbose_name_plural = "الطلاب"
+
     # … (حقول الطالب كما كانت) …
     image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
     note = models.TextField(blank=True, null=True, verbose_name="ملاحظة")
@@ -36,6 +40,7 @@ class Student(models.Model):
     passport_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم الجواز")
     registration_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم التسجيل")
     place_of_issue = models.CharField(max_length=100, blank=True, null=True, verbose_name="مكان الإصدار")
+    passport_number_old = models.CharField(max_length=50, blank=True, null=True)
     purpose = models.CharField(max_length=100, blank=True, null=True, verbose_name="الغرض")
     registration_place = models.CharField(max_length=100, blank=True, null=True, verbose_name="مكان التسجيل")
     visa_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم التأشيرة")
@@ -70,6 +75,11 @@ class Student(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    class Meta:
+        permissions = [
+            ("can_create_correspondence", "Can create correspondence/letters"),
+        ]
 
 
 # ----------------------------
@@ -129,3 +139,40 @@ class CustomUser(AbstractUser):
 
     def is_viewer(self):
         return self.role == 'viewer'
+
+    
+
+class Correspondent(models.Model):
+    category = models.CharField(max_length=50, unique=True)
+    name     = models.CharField(max_length=100)
+    title    = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.category})"
+
+    class Meta:
+        verbose_name        = "الاسم"
+        verbose_name_plural = "إدارة التوجيهات والمراسلات"
+
+
+
+# *** نموذج جديد خاص بالمدير التنفيذي و التوقيع ***
+class ExecutiveDirector(models.Model):
+    name      = models.CharField(max_length=100, verbose_name="اسم المدير التنفيذي")
+    title     = models.CharField(max_length=100, blank=True, verbose_name="المنصب الوظيفي")
+    institute     = models.CharField(max_length=100, blank=True, verbose_name="اسم المعهد")
+    signature = models.ImageField(
+        upload_to='signatures/',
+        blank=True,
+        null=True,
+        verbose_name="توقيع المدير التنفيذي"
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "المدير التنفيذي"
+        verbose_name_plural = "بيانات المدير التنفيذي"
+
+    

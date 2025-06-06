@@ -2,24 +2,37 @@
 {% load static %}
 {% block content %}
 
+<!-- Custom CSS to position accordion chevron on the far left -->
+<style>
+  .accordion-button {
+    justify-content: flex-start; /* Align items to the start */
+  }
+  .accordion-button::after {
+    margin-left: 0;      /* Remove default left margin */
+    margin-right: auto;  /* Push icon to the far left */
+  }
+</style>
+
 <div class="container mt-4">
   <div class="row">
-    <!-- صورة الطالب -->
-    <div class="col-md-4 text-center">
-      {% if student.image and student.image.url %}
-        <img src="{{ student.image.url }}" class="rounded-circle img-fluid" alt="صورة الطالب" style="width: 150px; height: 150px;">
-      {% else %}
-        <img src="{% static 'students/default.png' %}" class="rounded-circle img-fluid" alt="صورة افتراضية" style="width: 150px; height: 150px;">
-      {% endif %}
+    <!-- Sidebar with Accordion for Directives -->
+    <div class="col-md-4">
+      <!-- Student Image and Basic Info -->
+      <div class="text-center mb-4">
+        {% if student.image and student.image.url %}
+          <img src="{{ student.image.url }}" class="rounded-circle img-fluid" alt="Student Image" style="width: 150px; height: 150px;">
+        {% else %}
+          <img src="{% static 'students/default.png' %}" class="rounded-circle img-fluid" alt="Default Image" style="width: 150px; height: 150px;">
+        {% endif %}
+        <h6 class="st-na mt-2">
+          <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.gif" alt="{{ student.nationality.name }}">
+          {{ student.nationality.name }}
+        </h6>
+        <h5 class="mt-3 st-name">{{ student.first_name }}</h5>
+      </div>
 
-      <h6 class="st-na mt-2">
-        <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.gif" alt="{{ student.nationality.name }}">
-        {{ student.nationality.name }}
-      </h6>
-      <h5 class="mt-3 st-name">{{ student.first_name }}</h5>
-
-      <!-- أزرار تعديل وحذف الطالب -->
-      <div class="student-actions mt-3">
+      <!-- Edit and Delete Buttons -->
+      <div class="student-actions mb-4 text-center">
         <a href="{% url 'student_edit' student.id %}" class="btn btn-primary me-1">
           <i class="fas fa-edit"></i>
         </a>
@@ -31,33 +44,97 @@
         </form>
       </div>
 
-      <div class="mt-4">
-        <div class="card">
-          <div class="card-header bg-primary text-white">
-            <h5 class="card-title">إدارة التوجيهات والمراسلات</h5>
-          </div>
-          <div class="card-body">
-            <div class="form-group">
-              <label for="actionDropdown" class="fw-bold">اختر إجراءً:</label>
-              <select class="form-control" id="actionDropdown">
-                <option value="">اختر إجراءً...</option>
-                <option value="passports">إلى الجوازات</option>
-                <option value="security">إلى الأمن العام</option>
-                <option value="students_affairs">إلى شؤون الطلاب</option>
-              </select>
+      <!-- Accordion for "Manage Directives" -->
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title">إدارة التوجيهات والمراسلات</h5>
+        </div>
+        <div class="card-body">
+          <div class="accordion" id="directiveAccordion">
+            <!-- Passport Section -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingPassport">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePassport" aria-expanded="false" aria-controls="collapsePassport">
+                  الجوازات
+                </button>
+              </h2>
+              <div id="collapsePassport" class="accordion-collapse collapse" aria-labelledby="headingPassport" data-bs-parent="#directiveAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-unstyled">
+                    <li>
+                      <a href="{% url 'transfer_residence_letter' student.id %}" class="text-decoration-none">
+                        طلب نقل بيانات الاقامة
+                      </a>
+                    </li>
+                    
+                    <li><a href="#" class="text-decoration-none">طلب فحص</a></li>
+                    <li><a href="#" class="text-decoration-none">تأشيرة خروج نهائي</a></li>
+                    <li><a href="#" class="text-decoration-none">تأشيرة خروج وعودة</a></li>
+                    <li><a href="#" class="text-decoration-none">تأشيرة خروج عادي</a></li>
+                    <li><a href="#" class="text-decoration-none">طلب تجديد إقامة</a></li>
+                    <li><a href="#" class="text-decoration-none">طلب تأشيرة دراسة</a></li>
+                    <li><a href="#" class="text-decoration-none">طلب صرف إقامة طالب</a></li>
+                  </ul>
+                </div>
+              </div>
             </div>
-
-            <button class="btn btn-success btn-block mt-3" id="performActionBtn">
-              <i class="fas fa-play-circle"></i> تنفيذ الإجراء
-            </button>
-            <input type="hidden" id="studentId" value="{{ student.id }}">
+            <!-- Security Section -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingSecurity">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurity" aria-expanded="false" aria-controls="collapseSecurity">
+                  الأمن
+                </button>
+              </h2>
+              <div id="collapseSecurity" class="accordion-collapse collapse" aria-labelledby="headingSecurity" data-bs-parent="#directiveAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-unstyled">
+                    <li><a href="#" class="text-decoration-none">الأمن السياسي - كشف الطلاب</a></li>
+                    <li><a href="#" class="text-decoration-none">الأمن القومي - موافقة دخول</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <!-- Airport Section -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingAirport">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAirport" aria-expanded="false" aria-controls="collapseAirport">
+                  المطار
+                </button>
+              </h2>
+              <div id="collapseAirport" class="accordion-collapse collapse" aria-labelledby="headingAirport" data-bs-parent="#directiveAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-unstyled">
+                    <li><a href="#" class="text-decoration-none">تفويض مندوب استقبال الطلاب</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <!-- Correspondence Section -->
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingCorrespondence">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCorrespondence" aria-expanded="false" aria-controls="collapseCorrespondence">
+                  مراسلات أخرى
+                </button>
+              </h2>
+              <div id="collapseCorrespondence" class="accordion-collapse collapse" aria-labelledby="headingCorrespondence" data-bs-parent="#directiveAccordion">
+                <div class="accordion-body p-2">
+                  <ul class="list-unstyled">
+                    <li><a href="#" class="text-decoration-none">الخطوط اليمنية</a></li>
+                    <li><a href="#" class="text-decoration-none">إفادة قبول للدراسة</a></li>
+                    <li><a href="#" class="text-decoration-none">المرور والى من يهمه الامر</a></li>
+                    <li><a href="#" class="text-decoration-none">إفادة قيد</a></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Main Content: Student Details Tabs -->
     <div class="col-md-8">
-      <!-- التبويبات -->
+      <!-- Tabs for student details -->
       <ul class="nav nav-tabs" id="studentTabs" role="tablist">
         <li class="nav-item">
           <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button">المعلومات الشخصية</button>
@@ -78,7 +155,6 @@
           <button class="nav-link" id="note-tab" data-bs-toggle="tab" data-bs-target="#note" type="button">سجل الملاحظات</button>
         </li>
       </ul>
-
       <div class="tab-content mt-3">
         <!-- المعلومات الشخصية -->
         <div class="tab-pane fade show active" id="personal">
@@ -90,7 +166,6 @@
           <p><strong>تاريخ الميلاد :</strong> {{ student.birth_date }}</p>
           <p><strong>الحالة الاجتماعية :</strong> {{ student.get_marital_status_display }}</p>
         </div>
-
         <!-- الجوازات والإقامة -->
         <div class="tab-pane fade" id="passport">
           <p><strong>رقم الجواز :</strong> {{ student.passport_number }}</p>
@@ -109,6 +184,7 @@
           <p><strong>تاريخ إصدار الإقامة :</strong> {{ student.residence_issued_date }}</p>
           <p><strong>تاريخ انتهاء الإقامة :</strong> {{ student.residence_end_date }}</p>
         </div>
+
 
         <!-- المعاملات -->
         <div class="tab-pane fade" id="services">
@@ -143,46 +219,46 @@
                            class="img-thumbnail doc-thumbnail"
                            style="width: 80px; height: auto; cursor: pointer;"
                            data-full-url="{{ doc.file.url }}"
-                           alt="مستند">
+                           alt="Document">
                     </div>
                     <div class="col-md-10">
-                      <strong>نوع المستند:</strong> {{ doc.get_doc_type_display }}<br>
+                      <strong>Document Type:</strong> {{ doc.get_doc_type_display }}<br>
                       {% if doc.caption %}
-                        <strong>الوصف التوضيحي:</strong> {{ doc.caption }}<br>
+                        <strong>Caption:</strong> {{ doc.caption }}<br>
                       {% endif %}
-                      <small class="text-muted">تاريخ الرفع: {{ doc.uploaded_at|date:"Y-m-d H:i" }}</small>
+                      <small class="text-muted">Uploaded: {{ doc.uploaded_at|date:"Y-m-d H:i" }}</small>
                     </div>
                   </div>
                 </li>
               {% endfor %}
             </ul>
           {% else %}
-            <p>لا توجد مستندات مرفوعة لهذا الطالب.</p>
+            <p>No documents uploaded for this student.</p>
           {% endif %}
         </div>
 
         <!-- سجل الملاحظات -->
         <div class="tab-pane fade" id="note">
-          <p><strong>الملاحظات :</strong> {{ student.note }}</p>
+          <p><strong>Notes:</strong> {{ student.note }}</p>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- مودال Lightbox لعرض الصورة بحجم أكبر -->
+<!-- Modal Lightbox for large image view -->
 <div class="modal fade" id="lightboxModal" tabindex="-1" aria-labelledby="lightboxLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content bg-transparent border-0">
       <div class="modal-body text-center p-0">
         <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
-        <img src="" id="lightboxImage" class="img-fluid" style="max-height: 90vh;" alt="عرض كبير">
+        <img src="" id="lightboxImage" class="img-fluid" style="max-height: 90vh;" alt="Large view">
       </div>
     </div>
   </div>
 </div>
 
-<!-- سكربت بسيط لفتح المودال وتعيين src للصورة -->
+<!-- Script for lightbox -->
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     document.querySelectorAll('.doc-thumbnail').forEach(function(thumbnail) {
