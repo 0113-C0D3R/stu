@@ -1,57 +1,91 @@
 {% extends "students/base.html" %}
 {% load static %}
+
 {% block extra_head %}
-  <link rel="stylesheet" type="text/css" href="{% static 'css/print.css' %}" media="print">
-  <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" media="all">
+  {{ block.super }}
+  <style>
+    /* Hide the letterhead image on screen */
+    .letterhead-print {
+      display: none;
+    }
+    /* Show and position the letterhead image when printing */
+    @media print {
+      .letterhead-print {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        z-index: -1;
+      }
+      /* Ensure container content prints over the letterhead */
+      .print-wrapper .container {
+        position: relative;
+        z-index: 1;
+        padding: 20mm;
+      }
+      /* Hide UI elements when printing */
+      .buttons-print,
+      nav.navbar {
+        display: none !important;
+      }
+      /* Optional: adjust page margins for print */
+      @page { margin: 0; }
+      body { margin: 0; }
+    }
+  </style>
 {% endblock %}
 
+{% block body_class %}print-page{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-  <!-- كليشة المهد -->
-  <div class="text-center-print mb-4">
-    <img src="{% static 'images/logo.png' %}" alt="شعار المركز" class="logo-print" width="160px">
-    <hr class="hr-print">
+  <div class="print-wrapper">
+    <!-- Letterhead image for print only -->
+    <img src="{% static 'images/letterhead-full.jpeg' %}" alt="كليشة المعهد" class="letterhead-print">
+
+    <div class="container mt-5">
+
+      <!-- محتوى الرسالة -->
+        <p class="opining-txt">الحمد لله رب العالمين وصلى الله وسلم على حبيبه الأمين سيدنا محمد وعلى آله وصحبه والتابعين.</p>
+        <p>
+          الأخ الفاضل / <span class="bold-print">{{ correspondent_name }}</span>{% if correspondent_title %}, <span class="bold-print">{{ correspondent_title }}</span>{% endif %}<br>
+          مدير عام مصلحة الهجرة والجوازات والجنسية بالوادي والصحراء / سيئون
+        </p>
+        <p class="opining-txt">السلام عليكم ورحمة الله وبركاته وبعد..</p>
+        <p class="center-txt"><span>الموضوع: {{ subject }}</span></p>
+        <br>
+        <p>
+          يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم..<br>
+          وبالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بنقل بيانات إقامة  <strong>{{ student.first_name }} {{ student.last_name }}</strong>
+          من جوازها القديم رقم <strong>({{ old_passport }})</strong> إلى جوازها الجديد رقم <strong>({{ new_passport }})</strong>.
+        </p>
+        <br>
+        <p class="normal-center-txt">
+          وتقبّلوا فائق الاحترام والتقدير.<br>
+          والله الموفّق والمعين.
+        </p>
+
+      <!-- توقيع المدير التنفيذي -->
+      {% if signature_url %}
+        <div class="text-signature-container">
+          <img src="{{ signature_url }}" alt="توقيع المدير التنفيذي" class="signature-print" width="160px;">
+          <p class="bold-print">{{ exec_name }}</p>
+          <p class="ex-title">{{ exec_title }}</p>
+          <p class="ex-institute">{{ exec_institute }}</p>
+        </div>
+      {% else %}
+        <div class="text-center-print mt-4">
+          <p class="no-signature-print">(لا يوجد توقيع مُحمَّل حاليًا)</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- أزرار الطباعة والحفظ -->
+    <div class="d-flex justify-content-between mb-4 buttons-print">
+      <button type="button" class="btn btn-secondary" onclick="window.print();">معاينة / طباعة</button>
+      <button type="button" onclick="window.location.href='{% url 'student_detail' student.id %}'" class="btn btn-primary">حفظ وعودة</button>
+    </div>
+
   </div>
-
-
-  <!-- محتوى الرسالة -->
-    <p class="opining-txt">الحمد لله رب العالمين وصلى الله وسلم على حبيبه الأمين سيدنا محمد وعلى آله وصحبه والتابعين.</p>
-    <p>
-      الأخ الفاضل / <span class="bold-print">{{ correspondent_name }}</span>{% if correspondent_title %}, <span class="bold-print">{{ correspondent_title }}</span>{% endif %}<br>
-      مدير عام مصلحة الهجرة والجوازات والجنسية بالوادي والصحراء / سيئون
-    </p>
-    <p class="opining-txt">السلام عليكم ورحمة الله وبركاته وبعد..</p>
-    <p class="center-txt"><span>الموضوع: {{ subject }}</span></p>
-    <br>
-    <p>
-      يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم..<br>
-      وبالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بنقل بيانات إقامة  <strong>{{ student.first_name }} {{ student.last_name }}</strong>
-      من جوازها القديم رقم <strong>({{ old_passport }})</strong> إلى جوازها الجديد رقم <strong>({{ new_passport }})</strong>.
-    </p>
-    <br>
-    <p class="normal-center-txt">
-      وتقبّلوا فائق الاحترام والتقدير.<br>
-      والله الموفّق والمعين.
-    </p>
-
-  <!-- توقيع المدير التنفيذي -->
-  {% if signature_url %}
-    <div class="text-signature-container">
-      <img src="{{ signature_url }}" alt="توقيع المدير التنفيذي" class="signature-print" width="160px;">
-      <p class="bold-print">{{ exec_name }}</p>
-      <p class="ex-title">{{ exec_title }}</p>
-      <p class="ex-institute">{{ exec_institute }}</p>
-    </div>
-  {% else %}
-    <div class="text-center-print mt-4">
-      <p class="no-signature-print">(لا يوجد توقيع مُحمَّل حاليًا)</p>
-    </div>
-  {% endif %}
-</div>
-
-<!-- أزرار الطباعة والحفظ -->
-<div class="d-flex justify-content-between mb-4 buttons-print">
-  <button type="button" class="btn btn-secondary" onclick="window.print();">معاينة / طباعة</button>
-  <button type="button" onclick="window.location.href='{% url 'student_detail' student.id %}'" class="btn btn-primary">حفظ وعودة</button>
-</div>
 {% endblock %}

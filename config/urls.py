@@ -12,6 +12,10 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # هنا نُدرِج ملف students/urls.py مع إعطائه الاسم 'students'
+    path('student/', include(('students.urls', 'students'), namespace='students')),
+    # إن كنت تريد صفحة رئيسية:
+    path('', include(('students.urls', 'students'), namespace='students')),
     path('', include('students.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
 ]

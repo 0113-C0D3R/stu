@@ -1,4 +1,5 @@
 /* تنسيقات عامة */
+
 body {
     font-family: 'Tajawal', sans-serif;  /* استخدام خط عربي */
     text-align: right;  /* محاذاة النص لليمين */
@@ -123,4 +124,47 @@ p.normal-center-txt {
 
 .ex-institute{
     margin-left: 10px;
+}
+
+
+
+/* print.css ###################################################### */
+
+
+/* حشوة داخل المحتوى كي لا يلتصق بالنوافذ */
+.container {
+  padding: 20mm; /* أو أي قيمة تراها مناسبة */
+  background: transparent;
+}
+
+/* إخفاء الأزرار دائماً على الشاشة */
+.buttons-print {
+  display: none !important;
+}
+
+/* قواعد التنسيق الأخرى (عريضة، مسطرة، توسيط...) */
+.bold-print {
+  font-weight: bold;
+}
+.underline-print {
+  text-decoration: underline;
+}
+.text-center-print {
+  text-align: center;
+}
+.hr-print {
+  border-top: 2px solid #000;
+}
+.signature-print {
+  width: 160px;
+}
+.no-signature-print {
+  color: red;
+}
+
+
+/* صفحة بيانات الطالب ##################################*/
+
+.stu-details {
+    margin-top: -80px;
 }

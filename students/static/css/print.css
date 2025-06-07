@@ -6,3 +6,53 @@ p.center-txt {
     text-decoration: underline;
     color: #c0392b;
 }
+
+
+/* print.css */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+/* نلغي هوامش الـ body الافتراضية */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* نضبط الخلفية لتملأ الصفحة بالكامل */
+body {
+  background: url("../images/letterhead-full.jpeg") no-repeat center top;
+  background-size: cover; /* يملأ كامل الصفحة */
+  /* احتفظ بمساحة للهوامش الداخلية إن أردت */
+  /* padding: 20mm; */
+}
+
+/* نُخفي أي عناصر لا نريد طباعتها */
+.buttons-print {
+  display: none !important;
+}
+
+/* كيف يُنسّق نصك فوق الخلفية */
+.container {
+  /* إذا استخدمت padding في الـ body، اضبط هنا حشوة إضافية */
+  padding: 20mm;
+  /* اجعل الخلفية شفافة خلف المحتوى */
+  background: transparent;
+}
+
+/* بقية قواعد الطباعة */
+.bold-print { font-weight: bold !important; }
+.underline-print { text-decoration: underline !important; }
+.text-center-print { text-align: center !important; }
+.logo-print, .signature-print { /* إذا ظهرت فوق الخلفية */ }
+
+/* تأكد من أن النص لا يقطع خارج حدود الصفحة */
+@media print {
+  .container {
+    box-sizing: border-box;
+    width: 100%;
+    height: auto;
+  }
+}

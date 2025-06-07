@@ -1,23 +1,43 @@
 {% extends "students/base.html" %}
+{% load static %}
 {% load crispy_forms_tags %}
 
 {% block content %}
-<h2>تعديل بيانات الطالب</h2>
-<form method="post" enctype="multipart/form-data">  <!-- تأكد من وجود enctype -->
+<div class="container mt-5">
+  <h2>تعديل بيانات الطالب</h2>
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form|crispy }}
-    <button type="submit" class="btn btn-primary">تحديث</button>
-</form>
 
-    <!-- تفعيل Flatpickr -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            flatpickr(".flatpickr", {
-                dateFormat: "Y-m-d",  // تنسيق التاريخ
-                defaultDate: "today", // تعيين اليوم كتاريخ افتراضي
-            });
+    <!-- عرض أخطاء النموذج -->
+    {{ student_form.non_field_errors }}
+
+    <!-- حقول النموذج الرئيسية باستخدام crispy -->
+    {{ student_form|crispy }}
+
+    <h4 class="mt-4">المستندات</h4>
+    <!-- إدارة المستندات عبر formset -->
+    {{ document_formset.management_form }}
+    {% for form in document_formset %}
+      <div class="card mb-2 p-3">
+        {{ form.non_field_errors }}
+        {{ form|crispy }}
+      </div>
+    {% endfor %}
+
+    <div class="mt-3">
+      <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+      <a href="{% url 'student_detail' student.id %}" class="btn btn-secondary">إلغاء</a>
+    </div>
+  </form>
+</div>
+
+<!-- تفعيل Flatpickr -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr(".flatpickr", {
+            dateFormat: "Y-m-d",
+            defaultDate: "today",
         });
-    </script>
+    });
+</script>
 {% endblock %}
-
-
