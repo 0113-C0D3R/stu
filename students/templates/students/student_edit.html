@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container mt-5">
   <h2>تعديل بيانات الطالب</h2>
-  <form method="post" enctype="multipart/form-data" action="{% url 'students:student_edit' student_id=student.id %}">
+  <form method="post" enctype="multipart/form-data" action="{% url 'students:student_update' student_id=student.id %}">
     {% csrf_token %}
 
     <!-- عرض أخطاء النموذج العامة -->

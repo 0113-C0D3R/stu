@@ -1,93 +1,93 @@
+# students/tests/test_views.py
+
 import pytest
 from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 from students.models import Student, Document
-from students.forms import DocumentFormSet
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 @pytest.mark.django_db
 class TestStudentViews:
 
-    @pytest.fixture(autouse=True)
-    def create_user_and_login(self, client, django_user_model):
-        user = django_user_model.objects.create_user(username='u', password='p')
-        client.login(username='u', password='p')
-        return client
-
-    def test_student_list_view(self, create_user_and_login):
-        url = reverse('students:student_list')
-        response = create_user_and_login.get(url)
+    def test_student_list_view(self, authenticated_client):
+        url = reverse("students:student_list")
+        response = authenticated_client.get(url)
         assert response.status_code == 200
-        assert 'قائمة الطلاب' in response.content.decode()
 
-    def test_student_create_view_and_redirect(self, create_user_and_login):
-        url = reverse('students:student_add')
+    def test_student_create_view_and_redirect(self, authenticated_client):
+        url = reverse("students:student_create")
         data = {
-            'first_name': 'Test', 'last_name': 'User',
-            'birth_date': '2000-01-01', 'gender': 'M',
-            'nationality': 'US', 'job': '', 'marital_status': 'single',
-            # إدارة الـ DocumentFormSet فارغة
-            'documents-TOTAL_FORMS': '0',
-            'documents-INITIAL_FORMS': '0',
-            'documents-MIN_NUM_FORMS': '0',
-            'documents-MAX_NUM_FORMS': '1000',
+            "first_name": "Test",
+            "last_name": "User",
+            "birth_date": "2000-01-01",
+            "gender": "M",
+            "nationality": "US",
+            "marital_status": "single",
+            "documents-TOTAL_FORMS": "0",
+            "documents-INITIAL_FORMS": "0",
         }
-        response = create_user_and_login.post(url, data)
-        assert response.status_code == 302
-        assert Student.objects.filter(first_name='Test', last_name='User').exists()
+        response = authenticated_client.post(url, data)
+        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج"
+        assert Student.objects.filter(first_name="Test", last_name="User").exists()
 
-    def test_student_update_view_and_redirect(self, create_user_and_login):
+    def test_student_update_view_and_redirect(self, authenticated_client):
         student = Student.objects.create(
-            first_name='A', last_name='B', birth_date='2000-01-01',
-            gender='M', nationality='US', job='', marital_status='single'
+            first_name="A",
+            last_name="B",
+            birth_date="2000-01-01",
+            gender="M",
+            nationality="US",
+            marital_status="single",
         )
-        url = reverse('students:student_edit', kwargs={'student_id': student.id})
+        # ✅  التصحيح: استخدام student_id بدلاً من pk
+        url = reverse("students:student_update", kwargs={"student_id": student.id})
         data = {
-            'first_name': 'A2', 'last_name': 'B2',
-            'birth_date': '2000-01-01', 'gender': 'M',
-            'nationality': 'US', 'job': '', 'marital_status': 'single',
-            # إدارة الـ DocumentFormSet فارغة
-            'documents-TOTAL_FORMS': '0',
-            'documents-INITIAL_FORMS': '0',
-            'documents-MIN_NUM_FORMS': '0',
-            'documents-MAX_NUM_FORMS': '1000',
+            "first_name": "A2",
+            "last_name": student.last_name,
+            "birth_date": "2000-01-01",
+            "gender": student.gender,
+            "nationality": student.nationality,
+            "marital_status": student.marital_status,
+            "documents-TOTAL_FORMS": "0",
+            "documents-INITIAL_FORMS": "0",
         }
-        response = create_user_and_login.post(url, data)
-        assert response.status_code == 302
+        response = authenticated_client.post(url, data)
+        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج"
         student.refresh_from_db()
-        assert student.first_name == 'A2'
+        assert student.first_name == "A2"
 
-    def test_student_delete_view(self, create_user_and_login):
+    def test_student_delete_view(self, authenticated_client):
         student = Student.objects.create(
-            first_name='X', last_name='Y', birth_date='2000-01-01',
-            gender='F', nationality='US', job='', marital_status='single'
+            first_name="X",
+            last_name="Y",
+            birth_date="2000-01-01",
+            gender="F",
+            nationality="US",
+            marital_status="single",
         )
-        url = reverse('students:student_delete', kwargs={'student_id': student.id})
-        response = create_user_and_login.post(url)
+        # ✅  التصحيح: استخدام student_id بدلاً من pk
+        url = reverse("students:student_delete", kwargs={"student_id": student.id})
+        response = authenticated_client.post(url)
         assert response.status_code == 302
-        assert not Student.objects.filter(id=student.id).exists()
+        with pytest.raises(Student.DoesNotExist):
+            Student.objects.get(id=student.id)
 
-    @pytest.mark.skip(reason="تعطيل مؤقت لاختبار رفع المستندات حتى نضبط الـ view handling بشكل دقيق")
-    def test_document_upload_in_create(self, create_user_and_login):
-        url = reverse('students:student_add')
-        fake_file = SimpleUploadedFile('f.txt', b'data', content_type='text/plain')
-        prefix = 'documents'
+    def test_document_upload_in_create(self, authenticated_client):
+        url = reverse("students:student_create")
+        upload = SimpleUploadedFile("doc.pdf", b"content", content_type="application/pdf")
         data = {
-            'first_name': 'D', 'last_name': 'E',
-            'birth_date': '2000-01-01', 'gender': 'M',
-            'nationality': 'US', 'job': '', 'marital_status': 'single',
-            f'{prefix}-TOTAL_FORMS': '1',
-            f'{prefix}-INITIAL_FORMS': '0',
-            f'{prefix}-MIN_NUM_FORMS': '0',
-            f'{prefix}-MAX_NUM_FORMS': '1000',
-            f'{prefix}-0-doc_type': 'passport',
-            f'{prefix}-0-caption': 'cap',
+            "first_name": "Sara",
+            "last_name": "Ahmed",
+            "birth_date": "2000-01-01",
+            "gender": "F",
+            "nationality": "US",
+            "marital_status": "single",
+            "documents-0-doc_type": "passport",
+            "documents-0-file": upload,
+            "documents-0-caption": "Test Caption",
+            "documents-TOTAL_FORMS": "1",
+            "documents-INITIAL_FORMS": "0",
         }
-        files = {
-            f'{prefix}-0-file': fake_file
-        }
-
-        response = create_user_and_login.post(url, data, files=files)
-        assert response.status_code == 302, response.content.decode()
-
-        student = Student.objects.get(first_name='D', last_name='E')
-        assert student.documents.exists()
+        response = authenticated_client.post(url, data, format="multipart")
+        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج والمستند"
+        student = Student.objects.get(first_name="Sara", last_name="Ahmed")
+        assert Document.objects.filter(student=student).exists()

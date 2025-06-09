@@ -33,7 +33,7 @@
 
       <!-- Edit and Delete Buttons -->
       <div class="student-actions mb-4 text-center">
-        <a href="{% url 'students:student_edit' student.id %}" class="btn btn-primary me-1">
+        <a href="{% url 'students:student_update' student.id %}" class="btn btn-primary me-1">
           <i class="fas fa-edit"></i>
         </a>
         <form action="{% url 'students:student_delete' student.id %}" method="post" class="d-inline">

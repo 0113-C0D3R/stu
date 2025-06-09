@@ -4,7 +4,7 @@
 {% block content %}
   <h2>إضافة طالب</h2>
 
-  <form method="post" enctype="multipart/form-data" action="{% url 'students:student_add' %}">
+  <form method="post" enctype="multipart/form-data" action="{% url 'students:student_create' %}">
       {% csrf_token %}
 
       {# ======== حقول بيانات الطالب ======== #}
