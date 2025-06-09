@@ -1,171 +1,163 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, permission_required
+# students/views.py (محوّل إلى Class-Based Views)
+from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import (
+    ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
+)
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from collections import Counter
 from django_countries import countries
 
-from .models import Student, Correspondent, ExecutiveDirector  # تأكد من استيراد ExecutiveDirector
+from .models import Student, Correspondent, ExecutiveDirector
 from .forms import StudentForm, DocumentFormSet
 
-@login_required
-def home(request):
-    return render(request, 'students/home.html')
+# صفحة رئيسية بسيطة
+class HomeView(LoginRequiredMixin, TemplateView):
+    template_name = 'students/home.html'
 
-@login_required
-def add_student(request):
-    if request.method == "POST":
-        student_form = StudentForm(request.POST, request.FILES)
-        if student_form.is_valid():
-            student = student_form.save()
-            document_formset = DocumentFormSet(request.POST, request.FILES, instance=student)
-            if document_formset.is_valid():
-                document_formset.save()
-                messages.success(request, 'تم إضافة الطالب والمستندات بنجاح.')
-                return redirect('students:student_list')
-            student.delete()
-            messages.error(request, 'حدث خطأ أثناء رفع المستندات. يرجى المحاولة مجددًا.')
+# إضافة طالب مع معالجة formset
+class StudentCreateView(LoginRequiredMixin, CreateView):
+    model = Student
+    form_class = StudentForm
+    template_name = 'students/add_student.html'
+    success_url = reverse_lazy('students:student_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['document_formset'] = DocumentFormSet(self.request.POST, self.request.FILES)
         else:
-            document_formset = DocumentFormSet(request.POST, request.FILES)
-    else:
-        student_form = StudentForm()
-        document_formset = DocumentFormSet()
+            context['document_formset'] = DocumentFormSet()
+        return context
 
-    return render(request, 'students/add_student.html', {
-        'student_form': student_form,
-        'document_formset': document_formset,
-    })
-
-@login_required
-def student_list(request):
-    query = request.GET.get('q')
-    students = Student.objects.all()
-    if query:
-        students = students.filter(first_name__icontains=query)
-    return render(request, 'students/student_list.html', {'students': students})
-
-@login_required
-def student_detail(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    return render(request, 'students/student_detail.html', {'student': student})
-
-@login_required
-def student_edit(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    if request.method == "POST":
-        student_form = StudentForm(request.POST, request.FILES, instance=student)
-        document_formset = DocumentFormSet(request.POST, request.FILES, instance=student)
-        if student_form.is_valid() and document_formset.is_valid():
-            student_form.save()
+    def form_valid(self, form):
+        context = self.get_context_data()
+        document_formset = context['document_formset']
+        if form.is_valid() and document_formset.is_valid():
+            self.object = form.save()
+            document_formset.instance = self.object
             document_formset.save()
-            messages.success(request, 'تم تحديث بيانات الطالب والمستندات بنجاح.')
-            return redirect('students:student_detail', student_id=student.id)
-    else:
-        student_form = StudentForm(instance=student)
-        document_formset = DocumentFormSet(instance=student)
+            messages.success(self.request, 'تم إضافة الطالب والمستندات بنجاح.')
+            return redirect(self.get_success_url())
+        return self.form_invalid(form)
 
-    return render(request, 'students/student_edit.html', {
-        'student_form': student_form,
-        'document_formset': document_formset,
-        'student': student,
-    })
+# قائمة الطلاب
+class StudentListView(LoginRequiredMixin, ListView):
+    model = Student
+    template_name = 'students/student_list.html'
+    context_object_name = 'students'
 
-@login_required
-def delete_student(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    student.delete()
-    return redirect('students:student_list')
+    def get_queryset(self):
+        qs = super().get_queryset()
+        query = self.request.GET.get('q')
+        if query:
+            qs = qs.filter(first_name__icontains=query)
+        return qs
 
+# تفاصيل الطالب
+class StudentDetailView(LoginRequiredMixin, DetailView):
+    model = Student
+    template_name = 'students/student_detail.html'
+    pk_url_kwarg = 'student_id'
+    context_object_name = 'student'
+
+# تعديل بيانات الطالب
+class StudentUpdateView(LoginRequiredMixin, UpdateView):
+    model = Student
+    form_class = StudentForm
+    template_name = 'students/student_edit.html'
+    pk_url_kwarg = 'student_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['document_formset'] = DocumentFormSet(self.request.POST, self.request.FILES, instance=self.object)
+        else:
+            context['document_formset'] = DocumentFormSet(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        document_formset = context['document_formset']
+        if form.is_valid() and document_formset.is_valid():
+            self.object = form.save()
+            document_formset.save()
+            messages.success(self.request, 'تم تحديث بيانات الطالب والمستندات بنجاح.')
+            return redirect('students:student_detail', student_id=self.object.id)
+        return self.form_invalid(form)
+
+# حذف الطالب
+class StudentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Student
+    template_name = 'students/student_confirm_delete.html'
+    pk_url_kwarg = 'student_id'
+    success_url = reverse_lazy('students:student_list')
+
+# تسجيل دخول مخصص
 class CustomLoginView(LoginView):
     template_name = 'students/login.html'
 
-@login_required
-def get_statistics(request):
-    male_students = Student.objects.filter(gender='M').count()
-    female_students = Student.objects.filter(gender='F').count()
-    nationalities = Student.objects.values_list('nationality', flat=True)
-    nationality_counts = Counter(nationalities)
-    nationality_labels = [countries.name(code) for code in nationality_counts.keys()]
-    nationality_values = list(nationality_counts.values())
+# إحصائيات (JSON)
+class StatisticsView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        male = Student.objects.filter(gender='M').count()
+        female = Student.objects.filter(gender='F').count()
+        nationality_counts = Counter(Student.objects.values_list('nationality', flat=True))
+        data = {
+            'male_students': male,
+            'female_students': female,
+            'nationality_labels': [countries.name(code) for code in nationality_counts.keys()],
+            'nationality_counts': list(nationality_counts.values()),
+        }
+        from django.http import JsonResponse
+        return JsonResponse(data)
 
-    from django.http import JsonResponse
-    data = {
-        'male_students': male_students,
-        'female_students': female_students,
-        'nationality_labels': nationality_labels,
-        'nationality_counts': nationality_values,
-    }
-    return JsonResponse(data)
+# صفحة رئيسية مع إحصائيات
+class HomeWithStatsView(LoginRequiredMixin, TemplateView):
+    template_name = 'students/home.html'
 
-@login_required
-def home_with_statistics(request):
-    male_students = Student.objects.filter(gender='M').count()
-    female_students = Student.objects.filter(gender='F').count()
-    nationalities = Student.objects.values_list('nationality', flat=True)
-    nationality_counts = Counter(nationalities)
-    nationality_labels = [countries.name(code) for code in nationality_counts.keys()]
-    nationality_values = list(nationality_counts.values())
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        male = Student.objects.filter(gender='M').count()
+        female = Student.objects.filter(gender='F').count()
+        nationality_counts = Counter(Student.objects.values_list('nationality', flat=True))
+        ctx.update({
+            'male_students': male,
+            'female_students': female,
+            'nationality_labels': [countries.name(code) for code in nationality_counts.keys()],
+            'nationality_counts': list(nationality_counts.values()),
+        })
+        return ctx
 
-    context = {
-        'male_students': male_students,
-        'female_students': female_students,
-        'nationality_labels': nationality_labels,
-        'nationality_counts': nationality_values,
-    }
-    return render(request, 'students/home.html', context)
+# مثال على TemplateView لباقي الصفحات
+class PassportRenewalView(LoginRequiredMixin, DetailView):
+    model = Student
+    template_name = 'students/passport_renewal.html'
+    pk_url_kwarg = 'student_id'
+    context_object_name = 'student'
 
-@login_required
-def to_passports(request, student_id):
-    student = get_object_or_404(Student, id=student_id)
-    return render(request, 'students/passport_renewal.html', {'student': student})
+class TransferResidenceLetterView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+    permission_required = 'students.can_create_correspondence'
+    template_name = 'students/transfer_residence_letter.html'
 
-@login_required
-@permission_required('students.can_create_correspondence', raise_exception=True)
-def transfer_residence_letter(request, student_id):
-    student = get_object_or_404(Student, pk=student_id)
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        student = get_object_or_404(Student, id=self.kwargs['student_id'])
+        director = Correspondent.objects.filter(category='مدير الجوازات').first()
+        exec_dir = ExecutiveDirector.objects.first()
 
-    # جلب بيانات مدير الجوازات
-    try:
-        director = Correspondent.objects.get(category='مدير الجوازات')
-        correspondent_name = director.name
-        correspondent_title = director.title
-    except Correspondent.DoesNotExist:
-        correspondent_name = ''
-        correspondent_title = ''
-
-    # جلب بيانات المدير التنفيذي من نموذج ExecutiveDirector
-    exec_dir = ExecutiveDirector.objects.first()
-    if exec_dir and exec_dir.signature:
-        signature_url = exec_dir.signature.url
-        exec_name = exec_dir.name
-        exec_title = exec_dir.title
-        exec_institute = exec_dir.institute
-    else:
-        signature_url = None
-        exec_name = ''
-        exec_title = ''
-        exec_institute = ''
-
-
-    subject_text = 'طلب نقل بيانات الإقامة'
-    old_passport = student.passport_number_old or ''
-    new_passport = student.passport_number or ''
-
-    if request.method == 'POST':
-        messages.success(request, 'تم حفظ المراسلة بنجاح.')
-        return redirect('students:student_detail', student_id=student.id)
-
-    context = {
-        'student': student,
-        'correspondent_name': correspondent_name,
-        'correspondent_title': correspondent_title,
-        'exec_name': exec_name,
-        'exec_title': exec_title,
-        'exec_institute': exec_institute,
-        'signature_url': signature_url,
-        'subject': subject_text,
-        'old_passport': old_passport,
-        'new_passport': new_passport,
-    }
-    return render(request, 'students/transfer_residence_letter.html', context)
-
+        ctx.update({
+            'student': student,
+            'correspondent_name': getattr(director, 'name', ''),
+            'correspondent_title': getattr(director, 'title', ''),
+            'exec_name': getattr(exec_dir, 'name', ''),
+            'exec_title': getattr(exec_dir, 'title', ''),
+            'exec_institute': getattr(exec_dir, 'institute', ''),
+            'signature_url': exec_dir.signature.url if exec_dir and exec_dir.signature else None,
+            'old_passport': student.passport_number_old or '',
+            'new_passport': student.passport_number or '',
+            'subject': 'طلب نقل بيانات الإقامة',
+        })
+        return ctx

@@ -4,18 +4,18 @@
 {% block content %}
   <h2>إضافة طالب</h2>
 
-  <form method="post" enctype="multipart/form-data">
+  <form method="post" enctype="multipart/form-data" action="{% url 'students:student_add' %}">
       {% csrf_token %}
 
       {# ======== حقول بيانات الطالب ======== #}
-      {{ student_form|crispy }}
+      {{ form|crispy }}
 
       <hr class="my-4">
 
       {# ======== قسم رفع المستندات المرتبطة بالطالب ======== #}
       <h4 class="mt-4">المستندات المتعلقة بالطالب</h4>
 
-      <!-- ملف إدارة الـ InlineFormSet -->
+      {# ملف إدارة الـ InlineFormSet #}
       {{ document_formset.management_form }}
 
       {% for doc_form in document_formset.forms %}

@@ -1,26 +1,39 @@
 from django.urls import path
-from . import views
-from .views import student_detail, student_edit, delete_student, get_statistics, CustomLoginView, to_passports
+from .views import (
+    HomeWithStatsView,
+    StudentListView,
+    StudentDetailView,
+    StudentCreateView,
+    StudentUpdateView,
+    StudentDeleteView,
+    CustomLoginView,
+    StatisticsView,
+    PassportRenewalView,
+    TransferResidenceLetterView,
+)
 
-
+app_name = 'students'
 
 urlpatterns = [
-    path('', views.home_with_statistics, name='home'),
-    path('', views.student_list, name='student_list'),
-    path('<int:student_id>/', views.student_detail, name='student_detail'),
-    path('add/', views.add_student, name='add_student'),
-    path('students/', views.student_list, name='student_list'),
-    path('student/<int:student_id>/', views.student_detail, name='student_detail'),
-    path('student/<int:student_id>/edit/', student_edit, name='student_edit'),
-    path('student/delete/<int:student_id>/', delete_student, name='delete_student'),
+    # صفحة البداية مع الإحصائيات
+    path('', HomeWithStatsView.as_view(), name='home'),
+
+    # تسجيل الدخول
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('get_statistics/', get_statistics, name='get_statistics'), 
-    path('student/<int:student_id>/to_passports/', views.to_passports, name='to_passports'),
-        path(
-        '<int:student_id>/directives/passport/transfer-residence/',
-        views.transfer_residence_letter,
-        name='transfer_residence_letter'
-    ),
+
+    # CRUD الطلاب
+    path('students/', StudentListView.as_view(), name='student_list'),
+    path('students/add/', StudentCreateView.as_view(), name='student_add'),
+    path('students/<int:student_id>/', StudentDetailView.as_view(), name='student_detail'),
+    path('students/<int:student_id>/edit/', StudentUpdateView.as_view(), name='student_edit'),
+    path('students/<int:student_id>/delete/', StudentDeleteView.as_view(), name='student_delete'),
+
+    # الإحصائيات (JSON)
+    path('students/stats/', StatisticsView.as_view(), name='statistics'),
+
+    # نموذج تجديد جواز
+    path('students/<int:student_id>/passport/', PassportRenewalView.as_view(), name='passport_renewal'),
+
+    # طلب نقل بيانات الإقامة
+    path('students/<int:student_id>/transfer-residence/', TransferResidenceLetterView.as_view(), name='transfer_residence_letter'),
 ]
-
-

@@ -84,7 +84,7 @@
     <!-- أزرار الطباعة والحفظ -->
     <div class="d-flex justify-content-between mb-4 buttons-print">
       <button type="button" class="btn btn-secondary" onclick="window.print();">معاينة / طباعة</button>
-      <button type="button" onclick="window.location.href='{% url 'student_detail' student.id %}'" class="btn btn-primary">حفظ وعودة</button>
+      <button type="button" onclick="window.location.href='{% url 'students:student_detail' student.id %}'" class="btn btn-primary">حفظ وعودة</button>
     </div>
 
   </div>
