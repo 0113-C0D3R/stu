@@ -26,22 +26,38 @@ class StudentCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['document_formset'] = DocumentFormSet(self.request.POST, self.request.FILES)
+        # إعداد الـ DocumentFormSet مع POST/FILES وربط instance عند الحاجة
+        if self.request.method == 'POST':
+            if hasattr(self, 'object') and self.object:
+                # حالة إعادة عرض القالب بعد خطأ في formset
+                context['document_formset'] = DocumentFormSet(
+                    self.request.POST, self.request.FILES, instance=self.object
+                )
+            else:
+                # حالة أول إرسال (object غير محفوظ بعد)
+                context['document_formset'] = DocumentFormSet(
+                    self.request.POST, self.request.FILES
+                )
         else:
+            # GET فقط: نموذج فارغ
             context['document_formset'] = DocumentFormSet()
         return context
 
     def form_valid(self, form):
-        context = self.get_context_data()
-        document_formset = context['document_formset']
-        if form.is_valid() and document_formset.is_valid():
-            self.object = form.save()
-            document_formset.instance = self.object
-            document_formset.save()
+        # حفظ نموذج الطالب أولاً
+        self.object = form.save()
+        # ثم إعداد وحفظ الـ formset المرتبط
+        formset = DocumentFormSet(
+            self.request.POST, self.request.FILES, instance=self.object
+        )
+        if formset.is_valid():
+            formset.save()
             messages.success(self.request, 'تم إضافة الطالب والمستندات بنجاح.')
             return redirect(self.get_success_url())
-        return self.form_invalid(form)
+        # إذا فشل formset، أعد عرض القالب مع الأخطاء (Status 200)
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 # قائمة الطلاب
 class StudentListView(LoginRequiredMixin, ListView):
