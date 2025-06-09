@@ -1,2 +1,5 @@
 # لا تتعقب ملف البيئة الحاوية على القيم السرية
 .env
+
+# Ignore SQLite database file
+db.sqlite3
