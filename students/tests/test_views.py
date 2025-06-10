@@ -11,7 +11,7 @@ class TestStudentViews:
     def test_student_list_view(self, authenticated_client):
         url = reverse("students:student_list")
         response = authenticated_client.get(url)
-        assert response.status_code == 200
+        assert response.status_code == 200  # nosec B101
 
     def test_student_create_view_and_redirect(self, authenticated_client):
         url = reverse("students:student_create")
@@ -26,8 +26,8 @@ class TestStudentViews:
             "documents-INITIAL_FORMS": "0",
         }
         response = authenticated_client.post(url, data)
-        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج"
-        assert Student.objects.filter(first_name="Test", last_name="User").exists()
+        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج" # nosec B101
+        assert Student.objects.filter(first_name="Test", last_name="User").exists() # nosec B101
 
     def test_student_update_view_and_redirect(self, authenticated_client):
         student = Student.objects.create(
@@ -51,9 +51,9 @@ class TestStudentViews:
             "documents-INITIAL_FORMS": "0",
         }
         response = authenticated_client.post(url, data)
-        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج"
+        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج" # nosec B101
         student.refresh_from_db()
-        assert student.first_name == "A2"
+        assert student.first_name == "A2"   # nosec B101
 
     def test_student_delete_view(self, authenticated_client):
         student = Student.objects.create(
@@ -67,7 +67,7 @@ class TestStudentViews:
         # ✅  التصحيح: استخدام student_id بدلاً من pk
         url = reverse("students:student_delete", kwargs={"student_id": student.id})
         response = authenticated_client.post(url)
-        assert response.status_code == 302
+        assert response.status_code == 302 # nosec B101
         with pytest.raises(Student.DoesNotExist):
             Student.objects.get(id=student.id)
 
@@ -88,6 +88,6 @@ class TestStudentViews:
             "documents-INITIAL_FORMS": "0",
         }
         response = authenticated_client.post(url, data, format="multipart")
-        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج والمستند"
+        assert response.status_code == 302, "فشل إعادة التوجيه، تحقق من صلاحية النموذج والمستند"    # nosec B101
         student = Student.objects.get(first_name="Sara", last_name="Ahmed")
-        assert Document.objects.filter(student=student).exists()
+        assert Document.objects.filter(student=student).exists()    # nosec B101
