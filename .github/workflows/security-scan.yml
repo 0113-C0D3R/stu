@@ -1,0 +1,58 @@
+# .github/workflows/security-scan.yml
+
+name: Django Security Scan
+
+# متى يتم تشغيل الفحص
+on:
+  push:
+    branches: [ "main", "master", "dev" ] # عند الرفع إلى هذه الفروع
+  pull_request:
+    branches: [ "main", "master" ] # عند عمل طلب دمج لهذه الفروع
+
+jobs:
+  # المهمة الأولى: فحص الكود باستخدام Bandit
+  bandit-scan:
+    name: Bandit Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          # تأكد من أن هذا الإصدار يطابق إصدار بايثون في مشروعك
+          python-version: '3.10'
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit
+        # يفحص كل الملفات ويستثني مجلد البيئة الافتراضية
+        run: bandit -r . -x ./venv
+
+  # المهمة الثانية: فحص المكتبات باستخدام Safety
+  safety-scan:
+    name: Safety Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          # تأكد من أن هذا الإصدار يطابق إصدار بايثون في مشروعك
+          python-version: '3.13.1'
+
+      - name: Install dependencies
+        # يفترض وجود ملف requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Install Safety
+        run: pip install safety
+
+      - name: Run Safety
+        run: safety check
