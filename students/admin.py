@@ -1,10 +1,9 @@
-
+# admin.py (النسخة المُعدلة والآمنة)
 
 from django.contrib import admin
-from django.utils.safestring import mark_safe
-from .models import Student, Correspondent
-
-from .models import Student, Document, Correspondent, ExecutiveDirector
+# 1. تم تغيير الاستيراد من mark_safe إلى format_html
+from django.utils.html import format_html
+from .models import Student, Correspondent, Document, ExecutiveDirector
 
 @admin.register(Correspondent)
 class CorrespondentAdmin(admin.ModelAdmin):
@@ -18,7 +17,8 @@ class ExecutiveDirectorAdmin(admin.ModelAdmin):
 
     def signature_thumbnail(self, obj):
         if obj.signature:
-            return mark_safe(f'<img src="{obj.signature.url}" style="width: 100px;" />')
+            # 2. تم استخدام format_html لإنشاء HTML آمن
+            return format_html('<img src="{}" style="width: 100px;" />', obj.signature.url)
         return ""
     signature_thumbnail.short_description = "معاينة التوقيع"
 
