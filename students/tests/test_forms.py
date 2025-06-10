@@ -37,10 +37,10 @@ def test_document_formset_minimal():
 
     # 5. انشئ الـ formset وتحقق من صلاحيته
     formset = DocumentFormSet(data=data, files=files, instance=student)
-    assert formset.is_valid(), f"Unexpected errors: {formset.errors}"
+    assert formset.is_valid(), f"Unexpected errors: {formset.errors}"  # nosec B101
 
     # 6. احفظ وتأكد من إنشاء مستند واحد في DB
     instances = formset.save()
-    assert len(instances) == 1
+    assert len(instances) == 1  # nosec B101
     doc = Document.objects.get(student=student)
-    assert doc.caption == 'Test Passport'
+    assert doc.caption == 'Test Passport'  # nosec B101
