@@ -66,25 +66,44 @@
 
       <div class="accordion shadow-sm" id="directiveAccordion">
         <div class="accordion-item">
-          <h2 class="accordion-header" id="headingDirectives">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDirectives" aria-expanded="true" aria-controls="collapseDirectives">
-              <strong>إدارة المراسلات</strong>
-            </button>
-          </h2>
-          <div id="collapseDirectives" class="accordion-collapse collapse show" aria-labelledby="headingDirectives">
-            <div class="accordion-body p-0">
-              <ul class="action-list">
-                <li><a href="{% url 'students:transfer_residence_letter' student.id %}" target="_blank"><i class="fas fa-passport text-primary"></i> طلب نقل بيانات الإقامة</a></li>
-                <li><a href="{% url 'students:generate_medical_check_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-first-aid text-danger"></i> طلب فحص طبي</a></li>
-                <li><a href="#"><i class="fas fa-plane-departure text-info"></i> تأشيرة خروج وعودة</a></li>
-                <li><a href="#"><i class="fas fa-id-card text-success"></i> طلب تجديد إقامة</a></li>
-                <li><a href="#"><i class="fas fa-file-alt text-secondary"></i> إفادة قيد</a></li>
-              </ul>
-            </div>
+          <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePassport">الجوازات</button></h2>
+          <div id="collapsePassport" class="accordion-collapse collapse show" data-bs-parent="#directiveAccordion">
+            <div class="accordion-body p-0"><ul class="action-list">
+              <li><a href="{% url 'students:transfer_residence_letter' student.id %}" target="_blank"><i class="fas fa-passport fa-fw text-primary"></i> طلب نقل بيانات الإقامة</a></li>
+              <li><a href="{% url 'students:generate_medical_check_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-first-aid fa-fw text-danger"></i> طلب فحص طبي</a></li>
+              <li><a href="#"><i class="fas fa-plane-departure fa-fw text-info"></i> تأشيرة خروج وعودة</a></li>
+              <li><a href="#"><i class="fas fa-id-card fa-fw text-success"></i> طلب تجديد إقامة</a></li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSecurity">الأمن</button></h2>
+          <div id="collapseSecurity" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
+            <div class="accordion-body p-0"><ul class="action-list">
+              <li><a href="#"><i class="fas fa-shield-alt fa-fw text-secondary"></i> الأمن السياسي - كشف</a></li>
+              <li><a href="#"><i class="fas fa-user-shield fa-fw text-dark"></i> الأمن القومي - موافقة</a></li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAirport">المطار</button></h2>
+          <div id="collapseAirport" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
+            <div class="accordion-body p-0"><ul class="action-list">
+              <li><a href="#"><i class="fas fa-plane fa-fw text-info"></i> تفويض مندوب استقبال</a></li>
+            </ul></div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCorrespondence">مراسلات أخرى</button></h2>
+          <div id="collapseCorrespondence" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
+            <div class="accordion-body p-0"><ul class="action-list">
+              <li><a href="#"><i class="fas fa-file-alt fa-fw text-secondary"></i> إفادة قيد</a></li>
+              <li><a href="#"><i class="fas fa-stamp fa-fw text-warning"></i> إفادة قبول للدراسة</a></li>
+            </ul></div>
           </div>
         </div>
       </div>
-    </div>
+  </div>
 
     <div class="col-lg-9">
       <div class="d-flex justify-content-between align-items-center mb-4">
