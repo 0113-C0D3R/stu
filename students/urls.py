@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 from .views import (
     HomeWithStatsView,
     StudentListView,
@@ -31,4 +32,6 @@ urlpatterns = [
     # نموذج تجديد جواز
     path('students/<int:student_id>/passport/',        PassportRenewalView.as_view(),        name='passport_renewal'),
     path('students/<int:student_id>/transfer-residence/', TransferResidenceLetterView.as_view(), name='transfer_residence_letter'),
+    # نمذج فحص الطالب
+    path('letters/medical-check-request/', views.GenerateMedicalCheckLetterView.as_view(), name='generate_medical_check_letter'),
 ]

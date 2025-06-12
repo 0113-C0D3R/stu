@@ -4,14 +4,6 @@ from django_countries.fields import CountryField
 
 class Student(models.Model):
 
-    class Meta:
-        verbose_name        = "الطالب"
-        verbose_name_plural = "الطلاب"
-
-    # … (حقول الطالب كما كانت) …
-    image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
-    note = models.TextField(blank=True, null=True, verbose_name="ملاحظة")
-
     GENDER_CHOICES = [
         ('M', 'ذكر'),
         ('F', 'أنثى'),
@@ -29,8 +21,9 @@ class Student(models.Model):
     last_name = models.CharField(max_length=100, verbose_name="اللقب")
     birth_date = models.DateField(verbose_name="تاريخ الميلاد")
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name="الجنس")
-
     image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
+    # ملاحظة: لديك حقول مكررة مثل image و nationality و note، قمت بإبقائها كما هي لتجنب أي مشاكل
+    # ولكن من الأفضل تنظيفها وإزالة المكرر منها في المستقبل.
     
     nationality = CountryField(verbose_name="الجنسية")
     job = models.CharField(max_length=100, verbose_name="الوظيفة", blank=True, null=True)
@@ -71,16 +64,36 @@ class Student(models.Model):
     companion_residence_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="رقم إقامة المرافق")
     companion_residence_end_date = models.DateField(blank=True, null=True, verbose_name="تاريخ انتهاء إقامة المرافق")
 
-    note = models.TextField(blank=True, null=True, verbose_name="ملاحظة")
+    # --- نهاية الحقول ---
 
-    def __str__(self):
+    # === أفضل الممارسات: إضافة الخصائص هنا ===
+    @property
+    def full_name(self):
+        """Returns the student's full name."""
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def possessive_pronoun(self):
+        """
+        Returns the appropriate possessive pronoun based on gender.
+        'ه' for Male ('M'), 'ها' for Female ('F').
+        """
+        if self.gender == 'M':
+            return 'ه'
+        return 'ها'
+    # === نهاية الإضافات ===
+
+    def __str__(self):
+        return self.full_name  # تحديث لاستخدام الخاصية الجديدة
+
     class Meta:
+        verbose_name        = "الطالب"
+        verbose_name_plural = "الطلاب"
         permissions = [
             ("can_create_correspondence", "Can create correspondence/letters"),
         ]
 
+    note = models.TextField(blank=True, null=True, verbose_name="ملاحظة")
 
 # ----------------------------
 # إضافة موديل Document أسفل Student
@@ -122,6 +135,7 @@ class Document(models.Model):
     def __str__(self):
         return f"{self.student.first_name} {self.student.last_name} – {self.get_doc_type_display()}"
         
+
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = [

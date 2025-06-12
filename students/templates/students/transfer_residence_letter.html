@@ -57,8 +57,8 @@
         <br>
         <p>
           يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم..<br>
-          وبالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بنقل بيانات إقامة  <strong>{{ student.first_name }} {{ student.last_name }}</strong>
-          من جوازها القديم رقم <strong>({{ old_passport }})</strong> إلى جوازها الجديد رقم <strong>({{ new_passport }})</strong>.
+          وبالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بنقل بيانات إقامة  <strong>{{ student.full_name }}</strong>
+          من جواز{{ student.possessive_pronoun }} القديم رقم <strong>({{ old_passport }})</strong> إلى جواز{{ student.possessive_pronoun }} الجديد رقم <strong>({{ new_passport }})</strong>.
         </p>
         <br>
         <p class="normal-center-txt">
