@@ -175,7 +175,7 @@ class PassportRenewalView(LoginRequiredMixin, DetailView):
 
 class TransferResidenceLetterView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
     permission_required = 'students.can_create_correspondence'
-    template_name = 'students/transfer_residence_letter.html'
+    template_name = 'students/letters/transfer_residence_letter.html'
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -204,8 +204,8 @@ class GenerateMedicalCheckLetterView(LoginRequiredMixin, View): # <-- تمت إ�
     - If a 'student_id' is passed via GET params, it generates a letter for that single student.
     - Otherwise, it displays a form to select multiple students.
     """
-    selection_template = 'students/select_students_for_letter.html'
-    letter_template = 'students/medical_check_letter.html'
+    selection_template = 'students/letters/select_students_for_letter.html'
+    letter_template = 'students/letters/medical_check_letter.html'
 
     def get(self, request, *args, **kwargs):
         student_id = request.GET.get('student_id')
