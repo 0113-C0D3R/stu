@@ -1,275 +1,323 @@
-# students/views.py 
+# students/views.py (النسخة النهائية المصححة)
+
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404, redirect, render # <-- تم إضافة render هنا
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
 )
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from collections import Counter
 from django_countries import countries
+from django.utils import timezone
+from hijri_converter.convert import Gregorian
+from django.db import transaction
 
-from .models import Student, Correspondent, ExecutiveDirector
+# تم حذف "from . import views" لأنه يسبب خطأ
+from .models import Student, Correspondent, ExecutiveDirector, GeneratedLetter, ReferenceCounter
 from .forms import StudentForm, DocumentFormSet
-from django.utils import timezone 
 
-# from hijri_converter import hijri_converter # <-- السطر القديم
-from hijri_converter.convert import Gregorian # <-- السطر الجديد والصحيح
 
-# صفحة رئيسية بسيطة
+# ==============================================================================
+#                                CORE VIEWS
+# ==============================================================================
+
 class HomeView(LoginRequiredMixin, TemplateView):
     template_name = 'students/home.html'
-
-# إضافة طالب مع معالجة formset
-class StudentCreateView(LoginRequiredMixin, CreateView):
-    model = Student
-    form_class = StudentForm
-    template_name = 'students/add_student.html'
-    success_url = reverse_lazy('students:student_list')
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if 'document_formset' not in context:
-            if self.request.POST:
-                context['document_formset'] = DocumentFormSet(self.request.POST, self.request.FILES)
-            else:
-                context['document_formset'] = DocumentFormSet()
+        male_students = Student.objects.filter(gender='M').count()
+        female_students = Student.objects.filter(gender='F').count()
+        nationality_counts = Counter(Student.objects.values_list('nationality', flat=True))
+        context['male_students'] = male_students
+        context['female_students'] = female_students
+        context['nationality_labels'] = [countries.name(code) for code in nationality_counts.keys() if code]
+        context['nationality_counts'] = list(nationality_counts.values())
+        context['page_title'] = 'لوحة التحكم الرئيسية'
         return context
 
-    def post(self, request, *args, **kwargs):
-        """
-        Override the post method to handle both the main form and the formset validation
-        before saving anything to the database.
-        """
-        self.object = None
-        form = self.get_form()
-        formset = DocumentFormSet(request.POST, request.FILES)
 
-        # Validate both the form and the formset
-        if form.is_valid() and formset.is_valid():
-            # If both are valid, call our custom form_valid
-            return self.form_valid(form, formset)
-        else:
-            # If either is invalid, call our custom form_invalid
-            return self.form_invalid(form, formset)
-
-    def form_valid(self, form, formset):
-        """
-        This method is called only when both the form and formset are valid.
-        We can now safely save everything to the database.
-        """
-        # Save the student object
-        self.object = form.save()
-        # Associate the formset with the saved student and save it
-        formset.instance = self.object
-        formset.save()
-        
-        messages.success(self.request, 'تم إضافة الطالب والمستندات بنجاح.')
-        return redirect(self.get_success_url())
-
-    def form_invalid(self, form, formset):
-        """
-        This method is called when either the form or formset is invalid.
-        It re-renders the template with the forms and their errors without saving anything.
-        """
-        messages.error(self.request, 'يرجى تصحيح الأخطاء أدناه.')
-        return self.render_to_response(
-            self.get_context_data(form=form, document_formset=formset)
-        )
-
-# قائمة الطلاب
 class StudentListView(LoginRequiredMixin, ListView):
     model = Student
     template_name = 'students/student_list.html'
     context_object_name = 'students'
-
+    paginate_by = 15
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().order_by('first_name', 'last_name')
         query = self.request.GET.get('q')
         if query:
-            qs = qs.filter(first_name__icontains=query)
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(first_name__icontains=query) |
+                Q(last_name__icontains=query) |
+                Q(passport_number__icontains=query)
+            )
         return qs
 
-# تفاصيل الطالب
+
 class StudentDetailView(LoginRequiredMixin, DetailView):
     model = Student
     template_name = 'students/student_detail.html'
     pk_url_kwarg = 'student_id'
     context_object_name = 'student'
 
-# تعديل بيانات الطالب
-class StudentUpdateView(LoginRequiredMixin, UpdateView):
+
+class StudentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    permission_required = 'students.add_student'
+    model = Student
+    form_class = StudentForm
+    template_name = 'students/add_student.html'
+    success_url = reverse_lazy('students:student_list')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if 'document_formset' not in context:
+            context['document_formset'] = DocumentFormSet(self.request.POST or None, self.request.FILES or None)
+        return context
+    def form_valid(self, form, formset):
+        self.object = form.save()
+        formset.instance = self.object
+        formset.save()
+        messages.success(self.request, f"تم إضافة الطالب '{self.object.full_name}' بنجاح.")
+        return redirect(self.get_success_url())
+    def form_invalid(self, form, formset):
+        messages.error(self.request, 'يرجى تصحيح الأخطاء أدناه.')
+        return self.render_to_response(self.get_context_data(form=form, document_formset=formset))
+
+
+class StudentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    permission_required = 'students.change_student'
     model = Student
     form_class = StudentForm
     template_name = 'students/student_edit.html'
     pk_url_kwarg = 'student_id'
-
+    def get_success_url(self):
+        return reverse_lazy('students:student_detail', kwargs={'student_id': self.object.id})
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.POST:
-            context['document_formset'] = DocumentFormSet(self.request.POST, self.request.FILES, instance=self.object)
-        else:
-            context['document_formset'] = DocumentFormSet(instance=self.object)
+        if 'document_formset' not in context:
+            context['document_formset'] = DocumentFormSet(self.request.POST or None, self.request.FILES or None, instance=self.object)
         return context
+    def form_valid(self, form, formset):
+        form.save()
+        formset.save()
+        messages.success(self.request, f"تم تحديث بيانات الطالب '{self.object.full_name}' بنجاح.")
+        return redirect(self.get_success_url())
+    def form_invalid(self, form, formset):
+        messages.error(self.request, 'يرجى تصحيح الأخطاء أدناه.')
+        return self.render_to_response(self.get_context_data(form=form, document_formset=formset))
 
-    def form_valid(self, form):
-        context = self.get_context_data()
-        document_formset = context['document_formset']
-        if form.is_valid() and document_formset.is_valid():
-            self.object = form.save()
-            document_formset.save()
-            messages.success(self.request, 'تم تحديث بيانات الطالب والمستندات بنجاح.')
-            return redirect('students:student_detail', student_id=self.object.id)
-        return self.form_invalid(form)
 
-# حذف الطالب
-class StudentDeleteView(LoginRequiredMixin, DeleteView):
+class StudentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    permission_required = 'students.delete_student'
     model = Student
     template_name = 'students/student_confirm_delete.html'
     pk_url_kwarg = 'student_id'
     success_url = reverse_lazy('students:student_list')
+    def form_valid(self, form):
+        messages.success(self.request, f"تم حذف الطالب '{self.object.full_name}' بنجاح.")
+        return super().form_valid(form)
 
-# تسجيل دخول مخصص
-class CustomLoginView(LoginView):
-    template_name = 'students/login.html'
 
-# إحصائيات (JSON)
-class StatisticsView(LoginRequiredMixin, View):
-    def get(self, request, *args, **kwargs):
-        male = Student.objects.filter(gender='M').count()
-        female = Student.objects.filter(gender='F').count()
-        nationality_counts = Counter(Student.objects.values_list('nationality', flat=True))
-        data = {
-            'male_students': male,
-            'female_students': female,
-            'nationality_labels': [countries.name(code) for code in nationality_counts.keys()],
-            'nationality_counts': list(nationality_counts.values()),
-        }
-        from django.http import JsonResponse
-        return JsonResponse(data)
+# ==============================================================================
+#                        LETTER GENERATION VIEWS
+# ==============================================================================
 
-# صفحة رئيسية مع إحصائيات
-class HomeWithStatsView(LoginRequiredMixin, TemplateView):
-    template_name = 'students/home.html'
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        male = Student.objects.filter(gender='M').count()
-        female = Student.objects.filter(gender='F').count()
-        nationality_counts = Counter(Student.objects.values_list('nationality', flat=True))
-        ctx.update({
-            'male_students': male,
-            'female_students': female,
-            'nationality_labels': [countries.name(code) for code in nationality_counts.keys()],
-            'nationality_counts': list(nationality_counts.values()),
-        })
-        return ctx
-
-# مثال على TemplateView لباقي الصفحات
-class PassportRenewalView(LoginRequiredMixin, DetailView):
-    model = Student
-    template_name = 'students/passport_renewal.html'
-    pk_url_kwarg = 'student_id'
-    context_object_name = 'student'
-
-class TransferResidenceLetterView(LoginRequiredMixin, PermissionRequiredMixin, TemplateView):
+class BaseLetterView(LoginRequiredMixin, PermissionRequiredMixin, View):
     permission_required = 'students.can_create_correspondence'
-    template_name = 'students/letters/transfer_residence_letter.html'
+    selection_template_name = 'students/letters/select_students_for_letter.html'
+    letter_template_name = ''
+    letter_type_code = ''
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        student = get_object_or_404(Student, id=self.kwargs['student_id'])
-        director = Correspondent.objects.filter(category='مدير الجوازات').first()
+    def get(self, request, *args, **kwargs):
+        student_id = request.GET.get('student_id')
+        if student_id:
+            # student = get_object_or_404(Student, pk=student_id) # لم نعد بحاجة لهذا السطر
+            # نرسل QuerySet يحتوي على طالب واحد بدلاً من list
+            student_queryset = Student.objects.filter(pk=student_id)
+            return self.render_letter(request, student_queryset) 
+
+        all_students = Student.objects.all().order_by('first_name', 'last_name')
+        context = {'students': all_students, 'page_title': 'اختيار طلاب لإنشاء خطاب'}
+        return render(request, self.selection_template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        selected_student_ids = request.POST.getlist('student_ids')
+        if not selected_student_ids:
+            messages.error(request, 'لم تقم باختيار أي طالب.')
+            return redirect(request.path_info)
+        students_to_print = Student.objects.filter(id__in=selected_student_ids)
+        return self.render_letter(request, students_to_print)
+
+    def get_letter_context(self, students_queryset):
+        raise NotImplementedError("Subclasses must implement get_letter_context.")
+
+    def render_letter(self, request, students_queryset):
+        try:
+            with transaction.atomic():
+                counter, created = ReferenceCounter.objects.select_for_update().get_or_create(letter_type_code=self.letter_type_code)
+                counter.last_sequence += 1
+                counter.save()
+                year_short = str(timezone.now().year)[-2:]
+                sequence_str = str(counter.last_sequence).zfill(3)
+                new_ref_number = f"{self.letter_type_code}-{year_short}-{sequence_str}"
+        except Exception as e:
+            messages.error(request, f"فشل إنشاء الرقم المرجعي: {e}")
+            return redirect(request.path_info)
+
         exec_dir = ExecutiveDirector.objects.first()
+        today = timezone.now().date()
+        hijri_today = Gregorian(today.year, today.month, today.day).to_hijri()
 
-        ctx.update({
-            'student': student,
-            'correspondent_name': getattr(director, 'name', ''),
-            'correspondent_title': getattr(director, 'title', ''),
+        context = {
+            'students': students_queryset,
+            'gregorian_date': today.strftime('%Y/%m/%d'),
+            'hijri_date': f"{hijri_today.year}/{hijri_today.month}/{hijri_today.day}",
             'exec_name': getattr(exec_dir, 'name', ''),
             'exec_title': getattr(exec_dir, 'title', ''),
             'exec_institute': getattr(exec_dir, 'institute', ''),
             'signature_url': exec_dir.signature.url if exec_dir and exec_dir.signature else None,
-            'old_passport': student.passport_number_old or '',
-            'new_passport': student.passport_number or '',
-            'subject': 'طلب نقل بيانات الإقامة',
-        })
-        return ctx
-
-
-class GenerateMedicalCheckLetterView(LoginRequiredMixin, View): # <-- تمت إضافة LoginRequiredMixin
-    """
-    A flexible view to generate medical check request letters.
-    - If a 'student_id' is passed via GET params, it generates a letter for that single student.
-    - Otherwise, it displays a form to select multiple students.
-    """
-    selection_template = 'students/letters/select_students_for_letter.html'
-    letter_template = 'students/letters/medical_check_letter.html'
-
-    def get(self, request, *args, **kwargs):
-        student_id = request.GET.get('student_id')
-
-        # --- المنطق الجديد ---
-        # إذا جاء الطلب مع ID لطالب محدد (من صفحة التفاصيل)
-        if student_id:
-            student = get_object_or_404(Student, pk=student_id)
-            # استدعاء دالة مشتركة لتجهيز وعرض الخطاب
-            return self.render_letter(request, [student])
-
-        # --- المنطق القديم ---
-        # إذا لم يكن هناك ID، نعرض صفحة اختيار الطلاب
-        all_students = Student.objects.all().order_by('first_name', 'last_name')
-        context = {
-            'students': all_students,
-            'page_title': 'اختيار طلاب لخطاب الفحص الطبي',
+            'reference_number': new_ref_number,
         }
-        return render(request, self.selection_template, context)
+        letter_specific_context = self.get_letter_context(students_queryset)
+        context.update(letter_specific_context)
 
-    def post(self, request, *args, **kwargs):
-        selected_student_ids = request.POST.getlist('student_ids')
+        new_letter_record = GeneratedLetter.objects.create(
+            reference_number=new_ref_number,
+            letter_type=letter_specific_context.get('subject', 'غير محدد'),
+            created_by=request.user
+        )
+        new_letter_record.students.set(students_queryset)
+        return render(request, self.letter_template_name, context)
 
-        if not selected_student_ids:
-            all_students = Student.objects.all().order_by('first_name', 'last_name')
-            context = {
-                'students': all_students,
-                'page_title': 'اختيار طلاب لخطاب الفحص الطبي',
-                'error': 'يرجى اختيار طالب واحد على الأقل.'
-            }
-            return render(request, self.selection_template, context)
 
-        students_to_print = Student.objects.filter(id__in=selected_student_ids)
-        # استدعاء دالة مشتركة لتجهيز وعرض الخطاب
-        return self.render_letter(request, students_to_print)
+class GenerateMedicalCheckLetterView(BaseLetterView):
+    """Generates the letter for medical check-ups (for a single student)."""
+    letter_template_name = 'students/letters/medical_check_letter.html'
+    letter_type_code = 'MED'
 
-    def render_letter(self, request, students_queryset):
-        """
-        A helper method to prepare context and render the letter template.
-        This avoids code duplication between GET (for single student) and POST (for multiple).
-        """
-        try:
-            correspondent = Correspondent.objects.get(category='lab')
-        except Correspondent.DoesNotExist:
-            correspondent = None
+    def get_letter_context(self, students_queryset):
+        # نبحث عن الجهة المسؤولة عن الفحص الطبي
+        correspondent = Correspondent.objects.filter(category='lab').first()
 
-        director = ExecutiveDirector.objects.first()
+        # --- تم تبسيط المنطق ليتعامل مع طالب واحد فقط ---
+        student = students_queryset.first() # نفترض دائمًا وجود طالب واحد
 
-        today_gregorian = timezone.now().date()
-        today_hijri_obj = Gregorian(today_gregorian.year, today_gregorian.month, today_gregorian.day).to_hijri()
+        if student and student.gender == 'M':
+            # الحالة 1: طالب ذكر
+            dynamic_phrase = "للأخ الموضحة بياناته في الجدول أدناه"
+        else:
+            # الحالة 2: طالبة أنثى
+            dynamic_phrase = "للأخت الموضحة بياناتها في الجدول أدناه"
         
-        context = {
-            'students': students_queryset,
+        # الأجزاء الثابتة من النص
+        greeting = "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم.."
+        main_clause_start = "بالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بعمل فحص "
+        main_clause_end = " لترتيب إقامة الدراسة لدينا بالمركز."
+        
+        # تجميع النص النهائي
+        body_text = f"{greeting}\n\n{main_clause_start}{dynamic_phrase}{main_clause_end}"
+
+        return {
+            'subject': 'الموضوع: طلب فحص طبي',
+            'body_text': body_text,
             'correspondent': correspondent,
-            'today_gregorian': today_gregorian.strftime('%Y / %m / %d'),
-            'today_hijri': f"{today_hijri_obj.year} / {today_hijri_obj.month} / {today_hijri_obj.day}",
-            'page_title': 'خطاب طلب فحص طبي',
-            
-            # متغيرات المدير التنفيذي الجديدة
-            'exec_name': director.name if director else '',
-            'exec_title': director.title if director else '',
-            'exec_institute': director.institute if director else '',
-            'signature_url': director.signature.url if director and director.signature else None,
         }
+
+
+class GenerateExitReentryVisaLetterView(BaseLetterView):
+    """Generates the letter for exit/re-entry visa requests."""
+    letter_template_name = 'students/letters/exit_reentry_visa_letter.html'
+    letter_type_code = 'V'
+
+    def get_letter_context(self, students_queryset):
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # --- هذا هو التعديل الجديد لتحديد النص بناءً على الجنس ---
+        if student and student.gender == 'M':
+            # في حالة المذكر
+            gender_specific_phrase = "الأخ الموضح بياناته في الجدول أدناه يريد"
+        else:
+            # في حالة المؤنث (أو كقيمة افتراضية)
+            gender_specific_phrase = "الأخت الموضحة بياناتها في الجدول أدناه تريد"
         # --- نهاية التعديل ---
+
+        # الآن نستخدم المتغير الجديد في بناء نص الخطاب
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم بأن {gender_specific_phrase} تأشيرة خروج وعودة فنرجو منكم التعاون في منح التأشيرة وتسهيل اجراءاتها."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب تأشيرة خروج وعودة',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+class GenerateResidenceRenewalLetterView(BaseLetterView):
+    """Generates the letter for residence renewal requests."""
+    letter_template_name = 'students/letters/residence_renewal_letter.html'
+    letter_type_code = 'REV' # رمز مختصر لـ Residence
+
+    def get_letter_context(self, students_queryset):
+        # نفترض أن المخاطب هو نفسه مدير الجوازات
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # --- التعديل الجديد: تحديد متغيرين للنص بناءً على الجنس ---
+        if student and student.gender == 'M':
+            # في حالة المذكر
+            subject_phrase = "الأخ المذكور بياناته"
+            pronoun_phrase = "مزاولته"  # ضمير المذكر
+        else:
+            # في حالة المؤنث (أو كقيمة افتراضية)
+            subject_phrase = "الأخت المذكورة بياناتها"
+            pronoun_phrase = "مزاولتها"  # ضمير المؤنث
+        # --- نهاية التعديل ---
+
+        # الآن نستخدم كلا المتغيرين في بناء نص الخطاب
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"واشارة إلى الموضوع أعلاه، نرجو تكرمكم بتجديد إقامة {subject_phrase} أدناه لغرض الدراسة لدينا "
+            "بالمركز، "
+            f"ونتعهد أمامكم بعدم {pronoun_phrase} أي عمل، وفي حالة المخالفة لذلك نكون عرضة للإجراءات "
+            "القانونية التي تتخذ من قبلكم ونتحمل نفقة ترحيله ودفع الغرامات القانونية."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب تجديد إقامة',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+class TransferResidenceLetterView(BaseLetterView):
+    """Generates the letter for transferring residence data."""
+    letter_template_name = 'students/letters/transfer_residence_letter.html'
+    letter_type_code = 'TRAN' # رمز لـ Transfer
+
+    def get_letter_context(self, students_queryset):
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # تحديد الصياغة بناءً على الجنس
+        if student and student.gender == 'M':
+            # نص المذكر
+            gender_specific_phrase = f"نقل معلومات جواز سفره الجديد، ونفيدكم بأن جواز سفره القديم رقم ({student.passport_number_old or 'غير متوفر'}) قد تم استبداله بالجواز الجديد رقم ({student.passport_number or 'غير متوفر'})."
+        else:
+            # نص المؤنث
+            gender_specific_phrase = f"نقل معلومات جواز سفرها الجديد، ونفيدكم بأن جواز سفرها القديم رقم ({student.passport_number_old or 'غير متوفر'}) قد تم استبداله بالجواز الجديد رقم ({student.passport_number or 'غير متوفر'})."
+
+        body_text = (
+            "بالإشارة إلى الموضوع أعلاه، وبناءً على طلب المذكور/ة أعلاه، نرجو منكم التكرم بالموافقة على "
+            f"{gender_specific_phrase} وعليه نأمل منكم التوجيه لمن يلزم بنقل البيانات وتسهيل الإجراءات."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب نقل بيانات الإقامة',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
         
-        return render(request, self.letter_template, context)
+        return ctx # <-- تم إصلاح هذا الخطأ

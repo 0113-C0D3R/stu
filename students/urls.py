@@ -1,37 +1,35 @@
+# students/urls.py (النسخة المصححة)
+
 from django.urls import path
-from . import views
 from .views import (
-    HomeWithStatsView,
     StudentListView,
     StudentDetailView,
     StudentCreateView,
     StudentUpdateView,
     StudentDeleteView,
-    CustomLoginView,
-    StatisticsView,
-    PassportRenewalView,
     TransferResidenceLetterView,
+    GenerateMedicalCheckLetterView,
+    GenerateExitReentryVisaLetterView,
+    GenerateResidenceRenewalLetterView, # <--- 1. تم إضافة الكلاس هنا في قائمة الاستيراد
 )
 
 app_name = 'students'
 
 urlpatterns = [
-    path('', HomeWithStatsView.as_view(),         name='home'),
-    path('login/', CustomLoginView.as_view(),     name='login'),
+    # Student CRUD URLs
+    path('list/', StudentListView.as_view(), name='student_list'),
+    path('add/', StudentCreateView.as_view(), name='student_create'),
+    path('<int:student_id>/', StudentDetailView.as_view(), name='student_detail'),
+    path('<int:student_id>/edit/', StudentUpdateView.as_view(), name='student_update'),
+    path('<int:student_id>/delete/', StudentDeleteView.as_view(), name='student_delete'),
 
-    # CRUD الطلاب
-    path('students/',                          StudentListView.as_view(),   name='student_list'),
-    path('students/add/',                      StudentCreateView.as_view(), name='student_create'),
-    path('students/<int:student_id>/',         StudentDetailView.as_view(), name='student_detail'),
-    path('students/<int:student_id>/edit/',    StudentUpdateView.as_view(), name='student_update'),
-    path('students/<int:student_id>/delete/',  StudentDeleteView.as_view(), name='student_delete'),
-
-    # الإحصائيات (JSON)
-    path('students/stats/', StatisticsView.as_view(), name='statistics'),
-
-    # نموذج تجديد جواز
-    path('students/<int:student_id>/passport/',        PassportRenewalView.as_view(),        name='passport_renewal'),
-    path('students/<int:student_id>/transfer-residence/', TransferResidenceLetterView.as_view(), name='transfer_residence_letter'),
-    # نمذج فحص الطالب
-    path('letters/medical-check-request/', views.GenerateMedicalCheckLetterView.as_view(), name='generate_medical_check_letter'),
+    # Letter Generation URLs
+    path('letters/medical-check-request/', GenerateMedicalCheckLetterView.as_view(), name='generate_medical_check_letter'),
+    path('letters/exit-reentry-visa/', GenerateExitReentryVisaLetterView.as_view(), name='generate_exit_reentry_visa_letter'),
+    
+    # Single Letter URLs
+    path('letter/transfer-residence/', views.TransferResidenceLetterView.as_view(), name='transfer_residence_letter'),
+    
+    # 2. تم حذف "views." من السطر التالي لأنه لم يعد ضروريًا
+    path('letter/residence-renewal/', GenerateResidenceRenewalLetterView.as_view(), name='generate_residence_renewal_letter'),
 ]

@@ -1,91 +1,70 @@
-{% extends "students/base.html" %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طباعة: طلب نقل بيانات الإقامة</title>
+    <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now "U" %}">
+</head>
+<body>
+    <div class="print-container">
+        <div class="print-container-inner">
+            <img src="{% static 'images/letterhead-full.jpeg' %}" class="letterhead-bg-image" alt=" ">
+            <div class="header-info">
+                <span class="value ref-number">{{ reference_number }}</span>
+                <span class="value gregorian-date">{{ gregorian_date }}</span>
+                <span class="value hijri-date">{{ hijri_date }}هـ</span>
+            </div>
+            <div class="letter-body">
+                <p class="mt-1">
+                    الأخ الفاضل / 
+                    {% if correspondent %}<span class="bold-print">{{ correspondent.name }}</span>&nbsp;<span class="correspondent_title">{{ correspondent.title }}</span>{% else %}<span class="bold-print">(اسم المدير)</span>{% endif %}
+                    <br>
+                    مدير عام مصلحة الهجرة والجوازات والجنسية بالوادي والصحراء / سيئون
+                </p>
+                <p>السلام عليكم ورحمة الله وبركاته وبعد..</p>
+                <div class="subject-container">
+                    <h5 class="letter-subject">{{ subject }}</h5>
+                </div>
+                <p>{{ body_text|safe }}</p>
+                
+                {# يمكن إزالة الجدول إذا لم يكن ضروريًا لهذا الخطاب #}
+                <table class="table table-bordered text-center my-4" style="border: 1px solid #dee2e6;">
+                    <thead>
+                        <tr><th style="border: 1px solid #dee2e6;">م</th><th style="border: 1px solid #dee2e6;">الاسم</th><th style="border: 1px solid #dee2e6;">الجنسية</th><th style="border: 1px solid #dee2e6;">رقم الجواز الجديد</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td style="border: 1px solid #dee2e6;">{{ forloop.counter }}</td>
+                            <td style="border: 1px solid #dee2e6;">{{ student.full_name }}</td>
+                            <td style="border: 1px solid #dee2e6;">{{ student.nationality.name }}</td>
+                            <td style="border: 1px solid #dee2e6;">{{ student.passport_number }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
-{% block extra_head %}
-  {{ block.super }}
-  <style>
-    /* Hide the letterhead image on screen */
-    .letterhead-print {
-      display: none;
-    }
-    /* Show and position the letterhead image when printing */
-    @media print {
-      .letterhead-print {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: auto;
-        z-index: -1;
-      }
-      /* Ensure container content prints over the letterhead */
-      .print-wrapper .container {
-        position: relative;
-        z-index: 1;
-        padding: 20mm;
-      }
-      /* Hide UI elements when printing */
-      .buttons-print,
-      nav.navbar {
-        display: none !important;
-      }
-      /* Optional: adjust page margins for print */
-      @page { margin: 0; }
-      body { margin: 0; }
-    }
-  </style>
-{% endblock %}
-
-{% block body_class %}print-page{% endblock %}
-
-{% block content %}
-  <div class="print-wrapper">
-    <!-- Letterhead image for print only -->
-    <img src="{% static 'images/letterhead-full.jpeg' %}" alt="كليشة المعهد" class="letterhead-print">
-
-    <div class="container mt-5">
-
-      <!-- محتوى الرسالة -->
-        <p class="opining-txt">الحمد لله رب العالمين وصلى الله وسلم على حبيبه الأمين سيدنا محمد وعلى آله وصحبه والتابعين.</p>
-        <p>
-          الأخ الفاضل / <span class="bold-print">{{ correspondent_name }}</span>{% if correspondent_title %}<span class="correspondent_title">{{ correspondent_title }}</span>{% endif %}<br>
-          مدير عام مصلحة الهجرة والجوازات والجنسية بالوادي والصحراء / سيئون
-        </p>
-        <p class="opining-txt">السلام عليكم ورحمة الله وبركاته وبعد..</p>
-        <p class="center-txt"><span>الموضوع: {{ subject }}</span></p>
-        <br>
-        <p>
-          يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم..<br>
-          وبالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بنقل بيانات إقامة  <strong>{{ student.full_name }}</strong>
-          من جواز{{ student.possessive_pronoun }} القديم رقم <strong>({{ old_passport }})</strong> إلى جواز{{ student.possessive_pronoun }} الجديد رقم <strong>({{ new_passport }})</strong>.
-        </p>
-        <br>
-        <p class="normal-center-txt">
-          وتقبّلوا فائق الاحترام والتقدير.<br>
-          والله الموفّق والمعين.
-        </p>
-
-      <!-- توقيع المدير التنفيذي -->
-      {% if signature_url %}
-        <div class="text-signature-container">
-          <img src="{{ signature_url }}" alt="توقيع المدير التنفيذي" class="signature-print" width="160px;">
-          <p class="bold-print">{{ exec_name }}</p>
-          <p class="ex-title">{{ exec_title }}</p>
-          <p class="ex-institute">{{ exec_institute }}</p>
+                <div class="no-break">
+                    <p>وتقبلوا فائق الاحترام والتقدير،،<br>والله الموفق والمعين،،</p>
+                    {% if exec_name %}
+                      <div class="text-signature-container" style="text-align: left;">
+                        {% if signature_url %}<img src="{{ signature_url }}" alt="توقيع المدير التنفيذي" style="width: 160px;">{% endif %}
+                        <p style="font-weight: bold; margin-bottom: 0;">{{ exec_name }}</p>
+                        <p style="margin-bottom: 0;">{{ exec_title }}</p>
+                        <p style="margin-bottom: 5px;">{{ exec_institute }}</p>
+                      </div>
+                    {% endif %}
+                </div>
+                <hr>
+                <p style="font-size: 12px;"> • نسخة للملف</p>
+            </div>
         </div>
-      {% else %}
-        <div class="text-center-print mt-4">
-          <p class="no-signature-print">(لا يوجد توقيع مُحمَّل حاليًا)</p>
-        </div>
-      {% endif %}
     </div>
-
-    <!-- أزرار الطباعة والحفظ -->
-    <div class="d-flex justify-content-between mb-4 buttons-print">
-      <button type="button" class="btn btn-secondary" onclick="window.print();">معاينة / طباعة</button>
-      <button type="button" onclick="window.location.href='{% url 'students:student_detail' student.id %}'" class="btn btn-primary">حفظ وعودة</button>
-    </div>
-
-  </div>
-{% endblock %}
+    <script>
+        window.onload = function() { window.print(); };
+        window.onafterprint = function() { window.close(); };
+    </script>
+</body>
+</html>

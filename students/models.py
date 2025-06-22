@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
 
@@ -190,3 +191,40 @@ class ExecutiveDirector(models.Model):
         verbose_name_plural = "بيانات المدير التنفيذي"
 
     
+class GeneratedLetter(models.Model):
+    """
+    نموذج لتسجيل كل خطاب يتم إنشاؤه في النظام.
+    """
+    reference_number = models.CharField(max_length=50, unique=True, verbose_name="الرقم المرجعي")
+    letter_type = models.CharField(max_length=50, verbose_name="نوع الخطاب")
+    students = models.ManyToManyField(Student, verbose_name="الطلاب")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        verbose_name="تم إنشاؤه بواسطة"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+
+    class Meta:
+        verbose_name = "خطاب مُنشأ"
+        verbose_name_plural = "الخطابات المُنشأة"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.reference_number
+
+
+class ReferenceCounter(models.Model):
+    """
+    نموذج لحفظ آخر رقم تسلسلي لكل نوع من الخطابات لضمان عدم التكرار.
+    """
+    letter_type_code = models.CharField(max_length=20, unique=True, verbose_name="رمز نوع الخطاب")
+    last_sequence = models.PositiveIntegerField(default=0, verbose_name="آخر رقم تسلسلي")
+
+    class Meta:
+        verbose_name = "عدّاد أرقام مرجعية"
+        verbose_name_plural = "عدّادات الأرقام المرجعية"
+
+    def __str__(self):
+        return f"عدّاد {self.letter_type_code}: {self.last_sequence}"

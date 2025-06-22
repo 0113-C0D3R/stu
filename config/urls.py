@@ -8,7 +8,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from students.views import HomeWithStatsView
+from students.views import HomeView
 
 
 urlpatterns = [
@@ -17,7 +17,7 @@ urlpatterns = [
     path('student/', include(('students.urls', 'students'), namespace='students')),
     path('', include('students.urls')),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('', HomeWithStatsView.as_view(), name='home'),
+    path('', HomeView.as_view(), name='home'),
 
 ]
 

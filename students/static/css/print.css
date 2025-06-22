@@ -1,58 +1,147 @@
+/* =================================================================== */
+/* Default Screen Styles (ما يظهر على الشاشة)              */
+/* =================================================================== */
 
-p.center-txt {
-    text-align: center;
-    font-size: 20px;
-    font-weight: bold;
-    text-decoration: underline;
-    color: #c0392b;
+/* بشكل افتراضي، نخفي الحاوية المخصصة للطباعة عن الشاشة. */
+.print-container {
+    display: none;
 }
 
 
-/* print.css */
-@page {
-  size: A4;
-  margin: 0;
-}
+/* =================================================================== */
+/* Print Styles (تنسيقات عند الضغط على طباعة)             */
+/* =================================================================== */
 
-/* نلغي هوامش الـ body الافتراضية */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
-
-/* نضبط الخلفية لتملأ الصفحة بالكامل */
-body {
-  background: url("../images/letterhead-full.jpeg") no-repeat center top;
-  background-size: cover; /* يملأ كامل الصفحة */
-  /* احتفظ بمساحة للهوامش الداخلية إن أردت */
-  /* padding: 20mm; */
-}
-
-/* نُخفي أي عناصر لا نريد طباعتها */
-.buttons-print {
-  display: none !important;
-}
-
-/* كيف يُنسّق نصك فوق الخلفية */
-.container {
-  /* إذا استخدمت padding في الـ body، اضبط هنا حشوة إضافية */
-  padding: 20mm;
-  /* اجعل الخلفية شفافة خلف المحتوى */
-  background: transparent;
-}
-
-/* بقية قواعد الطباعة */
-.bold-print { font-weight: bold !important; }
-.underline-print { text-decoration: underline !important; }
-.text-center-print { text-align: center !important; }
-.logo-print, .signature-print { /* إذا ظهرت فوق الخلفية */ }
-
-/* تأكد من أن النص لا يقطع خارج حدود الصفحة */
 @media print {
-  .container {
-    box-sizing: border-box;
-    width: 100%;
-    height: auto;
-  }
+
+    /* 1. إعدادات الصفحة والـ Body
+    ------------------------------------ */
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* 2. التحكم في إظهار وإخفاء العناصر
+    ------------------------------------ */
+    /* إخفاء كل العناصر التي لا نريدها في الطباعة (مثل الأزرار) */
+    .no-print {
+        display: none !important;
+    }
+    
+    /* إظهار حاوية الطباعة الخاصة بنا */
+    .print-container {
+        display: block !important;
+    }
+
+    /* 3. تنسيق حاوية الطباعة والكليشة
+    ------------------------------------ */
+    /* الحاوية الداخلية تأخذ حجم الصفحة وتكون مرجعًا للمحتوى */
+    .print-container-inner {
+        width: 210mm;
+        height: 297mm;
+        position: relative; /* مهم لتحديد موضع العناصر الداخلية */
+    }
+    
+    /* الكليشة كعنصر صورة يملأ الخلفية */
+    .letterhead-bg-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1; /* اجعلها في الطبقة الخلفية */
+    }
+
+    /* 4. تنسيق المحتوى (النصوص)
+    ------------------------------------ */
+    /* تأكد من أن المحتوى يظهر فوق الخلفية */
+    .header-info, .letter-body {
+        position: relative;
+        z-index: 2; /* اجعلها في الطبقة الأمامية */
+    }
+    
+    /* تحديد مواضع معلومات الهيدر بدقة */
+    .header-info .value {
+        position: absolute;
+        font-family: Arial, sans-serif;
+        font-size: 10pt;
+        color: #333;
+        direction: ltr;
+        text-align: left;
+    }
+    .header-info .ref-number { 
+        top: 20mm; 
+        left: 40.5mm; 
+    }
+
+    .header-info .re-new-vis-ref-number { 
+        top: 20mm; 
+        left: 35.5mm; 
+    }
+    
+    .header-info .gregorian-date { 
+        top: 31.5mm; 
+        left: 35.5mm; 
+        direction: rtl; 
+    }
+    .header-info .hijri-date { 
+        top: 26mm; 
+        left: 35mm; 
+        direction: rtl; 
+        text-align: right; 
+    }
+
+    /* تنسيق متن الخطاب */
+    .letter-body {
+        padding-top: 45mm;
+        padding-left: 25mm;
+        padding-right: 25mm;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .subject-container {
+        text-align: center;  /* هذا يقوم بتوسيط العنوان */
+        margin: 1.5rem 0;    /* هذا يضيف مسافات عمودية (بديلًا عن my-4) */
+    }
+
+
+    .letter-subject {
+        text-decoration: none;
+        border-bottom: 1px solid #333;
+        padding-bottom: 3px;
+        margin-top: 5mm;
+        display: inline-block;
+    }
+
+
+    .bold-print {
+        font-weight: bold;
+    }
+
+    .opining-txt {
+        margin-bottom: 20px;
+    }
+
+    .correspondent_title {
+        padding-right: 16mm;
+    }
+
+    .end-ltr {
+        text-align: center;
+    }
+
+    .exe-title {
+        padding-left: 12mm;
+    }
+
+    .exe-institute {
+        padding-left: 4mm;
+    }
+
 }

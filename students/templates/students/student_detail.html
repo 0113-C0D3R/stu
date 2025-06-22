@@ -27,8 +27,8 @@
             <div class="accordion-body p-0"><ul class="action-list">
               <li><a href="{% url 'students:transfer_residence_letter' student.id %}" target="_blank"><i class="fas fa-passport fa-fw text-primary"></i> طلب نقل بيانات الإقامة</a></li>
               <li><a href="{% url 'students:generate_medical_check_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-first-aid fa-fw text-danger"></i> طلب فحص طبي</a></li>
-              <li><a href="#"><i class="fas fa-plane-departure fa-fw text-info"></i> تأشيرة خروج وعودة</a></li>
-              <li><a href="#"><i class="fas fa-id-card fa-fw text-success"></i> طلب تجديد إقامة</a></li>
+              <li><a href="{% url 'students:generate_exit_reentry_visa_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-plane-departure fa-fw text-info"></i> تأشيرة خروج وعودة</a></li>
+              <li><a href="{% url 'students:generate_residence_renewal_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-id-card fa-fw text-success"></i> طلب تجديد إقامة</a></li>
             </ul></div>
           </div>
         </div>
