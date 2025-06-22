@@ -295,24 +295,33 @@ class GenerateResidenceRenewalLetterView(BaseLetterView):
 class TransferResidenceLetterView(BaseLetterView):
     """Generates the letter for transferring residence data."""
     letter_template_name = 'students/letters/transfer_residence_letter.html'
-    letter_type_code = 'TRAN' # رمز لـ Transfer
+    letter_type_code = 'TRA' # رمز لـ Transfer
 
     def get_letter_context(self, students_queryset):
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
 
-        # تحديد الصياغة بناءً على الجنس
-        if student and student.gender == 'M':
-            # نص المذكر
-            gender_specific_phrase = f"نقل معلومات جواز سفره الجديد، ونفيدكم بأن جواز سفره القديم رقم ({student.passport_number_old or 'غير متوفر'}) قد تم استبداله بالجواز الجديد رقم ({student.passport_number or 'غير متوفر'})."
-        else:
-            # نص المؤنث
-            gender_specific_phrase = f"نقل معلومات جواز سفرها الجديد، ونفيدكم بأن جواز سفرها القديم رقم ({student.passport_number_old or 'غير متوفر'}) قد تم استبداله بالجواز الجديد رقم ({student.passport_number or 'غير متوفر'})."
+        # --- هذا هو التعديل الجديد لتطبيق النص المطلوب ---
 
-        body_text = (
-            "بالإشارة إلى الموضوع أعلاه، وبناءً على طلب المذكور/ة أعلاه، نرجو منكم التكرم بالموافقة على "
-            f"{gender_specific_phrase} وعليه نأمل منكم التوجيه لمن يلزم بنقل البيانات وتسهيل الإجراءات."
+        # 1. تحديد الضمير الصحيح (جوازه / جوازها)
+        if student and student.gender == 'M':
+            possessive_pronoun = "جوازه"
+        else:
+            possessive_pronoun = "جوازها"
+
+        # 2. الحصول على البيانات المطلوبة من نموذج الطالب
+        student_name = student.full_name if student else "[اسم الطالب]"
+        old_passport = student.passport_number_old or "[رقم الجواز القديم]"
+        new_passport = student.passport_number or "[رقم الجواز الجديد]"
+
+        # 3. بناء النص الكامل باستخدام البيانات
+        greeting = "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم.."
+        main_request = (
+            "وبالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بنقل بيانات إقامة "
+            f"({student_name}) من {possessive_pronoun} القديم رقم ({old_passport}) إلى {possessive_pronoun} الجديد رقم ({new_passport})."
         )
+        
+        body_text = f"{greeting}\n\n{main_request}"
 
         return {
             'subject': 'الموضوع: طلب نقل بيانات الإقامة',
@@ -321,3 +330,129 @@ class TransferResidenceLetterView(BaseLetterView):
         }
         
         return ctx # <-- تم إصلاح هذا الخطأ
+
+
+# أضف هذا الكلاس الجديد في ملف views.py
+
+class GenerateStudyVisaLetterView(BaseLetterView):
+    """Generates the letter for a new study visa request."""
+    letter_template_name = 'students/letters/study_visa_letter.html'
+    letter_type_code = 'SVI' # رمز لتأشيرة دراسة
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الجوازات
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # --- تحديد الصياغة بناءً على الجنس ---
+        if student and student.gender == 'M':
+            # نص المذكر
+            gender_specific_phrase = f"الأخ الموضحة بياناته في الجدول أدناه تقدم بطلب للدراسة لدينا وتم قبول طلبه"
+        else:
+            # نص المؤنث
+            gender_specific_phrase = f"الأخت الموضحة بياناتها في الجدول أدناه تقدمت بطلب للدراسة لدينا وتم قبول طلبها"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم بأنه {gender_specific_phrase} فنرجو منكم التعاون في منحه التأشيرة وتسهيل اجراءاته."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب تأشيرة دراسة',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+class GenerateIssueResidenceLetterView(BaseLetterView):
+    """Generates the letter to issue a new student residence permit."""
+    letter_template_name = 'students/letters/issue_residence_letter.html'
+    letter_type_code = 'IRE' # رمز لـ Issue Residence
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الجوازات
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # --- تحديد الصياغة بناءً على الجنس ---
+        if student and student.gender == 'M':
+            # نص المذكر
+            gender_specific_phrase = "للأخ المذكور بياناته"
+        else:
+            # نص المؤنث
+            gender_specific_phrase = "للأخت المذكورة بياناتها"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"إشارة إلى الموضوع أعلاه، نرجو تكرمكم بصرف إقامة {gender_specific_phrase} أدناه لغرض الدراسة لدينا بالمركز، "
+            "ونتعهد أمامكم بعدم مزاولته أي عمل، وفي حالة المخالفة لذلك نكون عرضة للإجراءات القانونية التي تتخذ من قبلكم ونتحمل نفقة ترحيله ودفع الغرامات القانونية."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب صرف إقامة طالب',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+class GenerateNormalExitVisaLetterView(BaseLetterView):
+    """Generates the letter for a normal exit visa request."""
+    letter_template_name = 'students/letters/normal_exit_visa_letter.html'
+    letter_type_code = 'NEX' # رمز لـ Normal Exit
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الجوازات
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # --- تحديد الصياغة بناءً على الجنس ---
+        if student and student.gender == 'M':
+            # نص المذكر
+            gender_specific_phrase = "الأخ الموضحة بياناته في الجدول أدناه يريد"
+        else:
+            # نص المؤنث
+            gender_specific_phrase = "الأخت الموضحة بياناتها في الجدول أدناه تريد"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم بأنه {gender_specific_phrase} تأشيرة خروج عادي فنرجو منكم التعاون في منحه التأشيرة وتسهيل اجراءاته."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب تأشيرة خروج عادي',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+class GenerateFinalExitVisaLetterView(BaseLetterView):
+    """Generates the letter for a final exit visa request."""
+    letter_template_name = 'students/letters/final_exit_visa_letter.html'
+    letter_type_code = 'F-EXIT' # رمز لـ Final Exit
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الجوازات
+        correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
+        student = students_queryset.first()
+
+        # --- تحديد الصياغة بناءً على الجنس ---
+        if student and student.gender == 'M':
+            # نص المذكر
+            gender_specific_phrase = "بأنه الأخ الموضح بياناته في الجدول أدناه يريد تأشيرة خروج نهائي"
+        else:
+            # نص المؤنث
+            gender_specific_phrase = "بأن الأخت الموضحة بياناتها في الجدول أدناه تريد تأشيرة خروج نهائي"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم {gender_specific_phrase} فنرجو منكم التعاون في منحها التأشيرة وتسهيل اجراءاته."
+        )
+
+        return {
+            'subject': 'الموضوع: طلب تأشيرة خروج نهائي',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+

@@ -25,10 +25,14 @@
           <h2 class="accordion-header"><button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePassport">الجوازات</button></h2>
           <div id="collapsePassport" class="accordion-collapse collapse show" data-bs-parent="#directiveAccordion">
             <div class="accordion-body p-0"><ul class="action-list">
-              <li><a href="{% url 'students:transfer_residence_letter' student.id %}" target="_blank"><i class="fas fa-passport fa-fw text-primary"></i> طلب نقل بيانات الإقامة</a></li>
-              <li><a href="{% url 'students:generate_medical_check_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-first-aid fa-fw text-danger"></i> طلب فحص طبي</a></li>
+              <li><a href="{% url 'students:generate_study_visa_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-stamp fa-fw text-warning"></i>تأشيرة دراسة</a></li>
+              <li><a href="{% url 'students:generate_issue_residence_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-address-card fa-fw text-info"></i>صرف إقامة طالب</a></li>
+              <li><a href="{% url 'students:transfer_residence_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-passport fa-fw text-primary"></i>نقل بيانات الإقامة</a></li>
+              <li><a href="{% url 'students:generate_medical_check_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-first-aid fa-fw text-danger"></i>فحص طبي</a></li>
               <li><a href="{% url 'students:generate_exit_reentry_visa_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-plane-departure fa-fw text-info"></i> تأشيرة خروج وعودة</a></li>
-              <li><a href="{% url 'students:generate_residence_renewal_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-id-card fa-fw text-success"></i> طلب تجديد إقامة</a></li>
+              <li><a href="{% url 'students:generate_normal_exit_visa_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-plane-slash fa-fw text-secondary"></i> تأشيرة خروج عادي</a></li>
+              <li><a href="{% url 'students:generate_residence_renewal_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-id-card fa-fw text-success"></i>تجديد إقامة</a></li>
+              <li><a href="{% url 'students:generate_final_exit_visa_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-sign-out-alt fa-fw text-danger"></i> تأشيرة خروج نهائي</a></li>
             </ul></div>
           </div>
         </div>

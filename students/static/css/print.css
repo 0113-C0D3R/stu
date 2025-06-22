@@ -74,27 +74,6 @@
         direction: ltr;
         text-align: left;
     }
-    .header-info .ref-number { 
-        top: 20mm; 
-        left: 40.5mm; 
-    }
-
-    .header-info .re-new-vis-ref-number { 
-        top: 20mm; 
-        left: 35.5mm; 
-    }
-    
-    .header-info .gregorian-date { 
-        top: 31.5mm; 
-        left: 35.5mm; 
-        direction: rtl; 
-    }
-    .header-info .hijri-date { 
-        top: 26mm; 
-        left: 35mm; 
-        direction: rtl; 
-        text-align: right; 
-    }
 
     /* تنسيق متن الخطاب */
     .letter-body {
@@ -142,6 +121,66 @@
 
     .exe-institute {
         padding-left: 4mm;
+    }
+
+
+    /* ########## الارقام المرجعية ########## */
+
+    .header-info .gregorian-date { 
+        top: 31.5mm; 
+        left: 35.5mm; 
+        direction: rtl; 
+    }
+    .header-info .hijri-date { 
+        top: 26mm; 
+        left: 35mm; 
+        direction: rtl; 
+        text-align: right; 
+    }
+
+    .header-info .ref-number { 
+        top: 20mm; 
+        left: 40.5mm; 
+    }
+
+    .header-info .stu-vis-ref-number { 
+        top: 20mm;
+        left: 37.5mm;  
+    }
+
+    .header-info .tra-ref-number { 
+        top: 20mm;
+        left: 36mm;  
+    }
+
+    .header-info .medi-vis-ref-number { 
+        top: 20mm;
+        left: 35mm;  
+    }
+
+    .header-info .re-new-vis-ref-number { 
+        top: 20mm; 
+        left: 35.5mm; 
+    }
+    
+    .header-info .ex-re-ref-number { 
+        top: 20mm;
+        left: 41mm;  
+    }
+
+    .header-info .iss-vis-ref-number { 
+        top: 20mm;
+        left: 37.5mm;  
+    }
+
+    .header-info .exit-re-ref-number { 
+        top: 20mm;
+        left: 36mm;  
+    }
+
+    .header-info .fexit-re-ref-number { 
+        top: 20mm;
+        left: 32mm;  
     }
 
 }
