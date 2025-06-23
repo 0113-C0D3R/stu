@@ -513,3 +513,40 @@ class GenerateEntryPermitLetterView(BaseLetterView):
             'body_text': body_text,
             'correspondent': correspondent,
         }
+
+
+
+class GenerateEntryPermitNSLetterView(BaseLetterView):
+    """Generates the letter for an entry permit (National Security)."""
+    letter_template_name = 'students/letters/entry_permit_ns_letter.html'
+    letter_type_code = 'NSEN'
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الأمن القومي
+        correspondent = Correspondent.objects.filter(category='الأمن القومي').first()
+
+        # منطق متقدم لتحديد الصياغة بناءً على العدد والجنس
+        count = students_queryset.count()
+        if count == 1:
+            student = students_queryset.first()
+            if student.gender == 'M':
+                dynamic_phrase = "تقدم إلينا الأخ الموضح بياناته في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبه فنرجو منكم التعاون في السماح له بالدخول"
+            else:
+                dynamic_phrase = "تقدمت إلينا الأخت الموضحة بياناتها في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبها فنرجو منكم التعاون في السماح لها بالدخول"
+        else:
+            all_female = all(s.gender == 'F' for s in students_queryset)
+            if all_female:
+                dynamic_phrase = "تقدمن إلينا الأخوات الموضحة بياناتهن في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبهن فنرجو منكم التعاون في السماح لهن بالدخول"
+            else: # مجموعة مختلطة أو ذكور فقط
+                dynamic_phrase = "تقدم إلينا الإخوة الموضحة بياناتهم في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبهم فنرجو منكم التعاون في السماح لهم بالدخول"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم بأنه {dynamic_phrase} وتسهيل اجراءاتهم:"
+        )
+
+        return {
+            'subject': 'الموضوع: توجيهاتكم بمنح موافقة دخول',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }        

@@ -1,64 +1,93 @@
-{% extends "students/base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موافقة دخول - الأمن القومي</title>
 
-{% block content %}
-<div class="container mt-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-light">
-            <h4 class="mb-0">{{ page_title|default:"اختيار طلاب" }}</h4>
-        </div>
-        <div class="card-body">
-            <p class="text-muted">من فضلك، اختر الطلاب الذين تريد إضافتهم إلى الخطاب ثم اضغط على "إنشاء الخطاب".</p>
+    <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now "U" %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    
+</head>
+<body>
 
-            <form method="post" action=""> {# <-- تم تعديل هذا السطر ليكون عامًا #}
-                {% csrf_token %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 5%;"><input type="checkbox" id="select-all" title="تحديد الكل"></th>
-                                <th>الاسم الكامل</th>
-                                <th>الجنسية</th>
-                                <th>رقم الجواز</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for student in students %}
-                            <tr>
-                                <td><input type="checkbox" class="form-check-input" name="student_ids" value="{{ student.id }}"></td>
-                                <td>{{ student.full_name }}</td>
-                                <td>{{ student.nationality.name }}</td>
-                                <td>{{ student.passport_number|default:"-" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="text-center">لا يوجد طلاب لعرضهم.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+
+    <div class="print-container">
+        <div class="print-container-inner">
+            <img src="{% static 'images/letterhead-full.jpeg' %}" class="letterhead-bg-image" alt=" ">
+
+            <div class="header-info">
+                <span class="value nstu-list-re-ref-number">{{ reference_number }}</span>
+                <span class="value gregorian-date">{{ gregorian_date }} م</span>
+                <span class="value hijri-date">{{ hijri_date }}هـ</span>
+            </div>
+            <div class="letter-body">
+
+            <p class="mt-1">
+                <p class="opining-txt">الحمد لله رب العالمين وصلى الله وسلم على حبيبه الأمين سيدنا محمد وعلى آله وصحبه والتابعين.</p>
+
+                الأخ الفاضل / 
+                {% if correspondent %}
+                    {# إذا تم العثور على المراسل، اعرض اسمه ومنصبه #}
+                    <span class="bold-print">{{ correspondent.name }}</span> <span class="correspondent_title">{{ correspondent.title }}</span>
+                {% else %}
+                    {# إذا لم يتم العثور عليه، اعرض نصًا افتراضيًا #}
+                    <span class="bold-print">(اسم المدير)</span>
+                {% endif %}
+                <br>
+            </p>
+
+            <p>السلام عليكم ورحمة الله وبركاته وبعد..</p>
+            
+            <div class="subject-container">
+                <h5 class="letter-subject">{{ subject }}</h5>
+            </div>
+
+                <p>{{ body_text|safe }}</p>
+                <table class="table table-bordered text-center my-4">
+                    <thead>
+                        <tr><th>م</th><th>الاسم على حسب الجواز</th><th>الاسم بالعربي</th><th>الجنسية</th><th>رقم الجواز</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ student.full_name|upper }}</td>
+                            <td>{{ student.full_name }}</td>
+                            <td>{{ student.nationality.name }}</td>
+                            <td>{{ student.passport_number }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="no-break">
+                    <p class="end-ltr">وتقبلوا فائق الاحترام والتقدير،،<br>والله الموفق والمعين،،</p>
+                    {% if exec_name %}
+                      <div class="text-signature-container" style="text-align: left;">
+
+                        {% if signature_url %}
+                            <img src="{{ signature_url }}" alt="توقيع المدير التنفيذي" style="width: 160px;">
+                        {% endif %}
+
+                        <p class="exe-name">{{ exec_name }}</p>
+                        <p class="exe-title">{{ exec_title }}</p>
+                        <p class="exe-institute">{{ exec_institute }}</p>
+                      </div>
+                    {% endif %}
                 </div>
-
-                <hr>
-
-                <div class="mt-3 text-center">
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="fas fa-print me-2"></i>إنشاء الخطاب
-                    </button>
-                    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-secondary">إلغاء</a>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-</div>
 
-{% block extra_js %}
-<script>
-    document.getElementById('select-all').onclick = function() {
-        const checkboxes = document.querySelectorAll('input[name="student_ids"]');
-        for (const checkbox of checkboxes) {
-            checkbox.checked = this.checked;
-        }
-    }
-</script>
-{% endblock %}
-{% endblock %}
+    <script>
+        window.onload = function() {
+            window.print();
+        };
+        window.onafterprint = function() {
+            window.close();
+        };
+    </script>
+    
+</body>
+</html>

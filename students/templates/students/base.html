@@ -62,6 +62,7 @@
             {% if perms.students.can_create_correspondence %}
             <li><a class="dropdown-item" href="{% url 'students:generate_medical_check_letter' %}">فحص طبي (جماعي)</a></li>
             <li><a class="dropdown-item" href="{% url 'students:generate_new_students_list_letter' %}">الأمن السياسي (جماعي)</a></li>
+            <li><a class="dropdown-item" href="{% url 'students:generate_entry_permit_ns_letter' %}">الأمن القومي (جماعي)</a></li>
             {% endif %}
           </ul>
         </li>
