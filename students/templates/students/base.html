@@ -61,6 +61,7 @@
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="correspondenceDropdown">
             {% if perms.students.can_create_correspondence %}
             <li><a class="dropdown-item" href="{% url 'students:generate_medical_check_letter' %}">فحص طبي (جماعي)</a></li>
+            <li><a class="dropdown-item" href="{% url 'students:generate_new_students_list_letter' %}">الأمن السياسي (جماعي)</a></li>
             {% endif %}
           </ul>
         </li>

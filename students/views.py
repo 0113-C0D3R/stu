@@ -197,7 +197,7 @@ class GenerateMedicalCheckLetterView(BaseLetterView):
 
     def get_letter_context(self, students_queryset):
         # نبحث عن الجهة المسؤولة عن الفحص الطبي
-        correspondent = Correspondent.objects.filter(category='lab').first()
+        correspondent = Correspondent.objects.filter(category='المختبر الوطني').first()
 
         # --- تم تبسيط المنطق ليتعامل مع طالب واحد فقط ---
         student = students_queryset.first() # نفترض دائمًا وجود طالب واحد
@@ -428,7 +428,7 @@ class GenerateNormalExitVisaLetterView(BaseLetterView):
 class GenerateFinalExitVisaLetterView(BaseLetterView):
     """Generates the letter for a final exit visa request."""
     letter_template_name = 'students/letters/final_exit_visa_letter.html'
-    letter_type_code = 'F-EXIT' # رمز لـ Final Exit
+    letter_type_code = 'FEX'
 
     def get_letter_context(self, students_queryset):
         # المخاطب هو مدير الجوازات
@@ -456,3 +456,60 @@ class GenerateFinalExitVisaLetterView(BaseLetterView):
 
 
 
+class GenerateNewStudentsListLetterView(BaseLetterView):
+    """Generates the letter for a list of new students."""
+    letter_template_name = 'students/letters/new_students_list_letter.html'
+    letter_type_code = 'NSTU' # رمز لـ New Students
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الأمن السياسي
+        correspondent = Correspondent.objects.filter(category='الأمن السياسي').first()
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            "وبالإشارة إلى الموضوع أعلاه نرجو تكرمكم بالاطلاع على كشف الطلاب الجدد بالفخرية للدراسات الشرعية:"
+        )
+
+        return {
+            'subject': 'الموضوع: كشف بأسماء الطلاب الجدد',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+
+class GenerateEntryPermitLetterView(BaseLetterView):
+    """Generates the letter for an entry permit."""
+    letter_template_name = 'students/letters/entry_permit_letter.html'
+    letter_type_code = 'ENP' # رمز لـ Entry Permit
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الأمن القومي
+        correspondent = Correspondent.objects.filter(category='الأمن القومي').first()
+
+        # --- منطق متقدم لتحديد الصياغة بناءً على العدد والجنس ---
+        count = students_queryset.count()
+        if count == 1:
+            student = students_queryset.first()
+            if student.gender == 'M':
+                dynamic_phrase = "تقدم إلينا الأخ الموضح بياناته في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبه فنرجو منكم التعاون في السماح له بالدخول"
+            else:
+                dynamic_phrase = "تقدمت إلينا الأخت الموضحة بياناتها في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبها فنرجو منكم التعاون في السماح لها بالدخول"
+        else:
+            # التحقق إذا كانت المجموعة كلها إناث
+            all_female = all(s.gender == 'F' for s in students_queryset)
+            if all_female:
+                dynamic_phrase = "تقدمن إلينا الأخوات الموضحة بياناتهن في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبهن فنرجو منكم التعاون في السماح لهن بالدخول"
+            else: # مجموعة مختلطة أو ذكور فقط
+                dynamic_phrase = "تقدم إلينا الإخوة الموضحة بياناتهم في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبهم فنرجو منكم التعاون في السماح لهم بالدخول"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم بأنه {dynamic_phrase} وتسهيل اجراءاتهم:"
+        )
+
+        return {
+            'subject': 'الموضوع: توجيهاتكم بمنح موافقة دخول',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }

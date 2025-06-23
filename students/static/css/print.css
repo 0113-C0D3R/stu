@@ -160,7 +160,7 @@
 
     .header-info .re-new-vis-ref-number { 
         top: 20mm; 
-        left: 35.5mm; 
+        left: 36mm; 
     }
     
     .header-info .ex-re-ref-number { 
@@ -180,7 +180,17 @@
 
     .header-info .fexit-re-ref-number { 
         top: 20mm;
-        left: 32mm;  
+        left: 36mm;  
+    }
+
+    .header-info .nstu-re-ref-number { 
+        top: 20mm;
+        left: 33.5mm;  
+    }
+
+    .header-info .enp-re-ref-number { 
+        top: 20mm;
+        left: 35.5mm;  
     }
 
 }
