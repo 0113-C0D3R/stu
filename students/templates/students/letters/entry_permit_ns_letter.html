@@ -80,14 +80,15 @@
         </div>
     </div>
 
-    <script>
-        window.onload = function() {
-            window.print();
-        };
-        window.onafterprint = function() {
-            window.close();
-        };
-    </script>
+<script>
+    window.onload = function() {
+        window.print();
+    };
+
+    window.onafterprint = function(event) {
+        window.location.href = "{% url 'home' %}";
+    };
+</script>
     
 </body>
 </html>

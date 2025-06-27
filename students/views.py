@@ -550,3 +550,55 @@ class GenerateEntryPermitNSLetterView(BaseLetterView):
             'body_text': body_text,
             'correspondent': correspondent,
         }        
+
+
+
+class GenerateReceptionDelegateLetterView(BaseLetterView):
+    """Generates the letter for authorizing a reception delegate."""
+    letter_template_name = 'students/letters/reception_delegate_letter.html'
+    letter_type_code = 'RECPT' # رمز لـ Reception
+
+    def get_letter_context(self, students_queryset):
+        
+        # --- منطق متقدم لتحديد الصياغة بناءً على العدد والجنس ---
+        count = students_queryset.count()
+        if count == 1:
+            student = students_queryset.first()
+            if student.gender == 'M':
+                subject_phrase = "الطالب المذكور بياناته"
+                arrival_verb = "سيصل يوم"
+                reception_pronoun = "لاستقباله"
+            else:
+                subject_phrase = "الطالبة المذكورة بياناتها"
+                arrival_verb = "ستصل يوم"
+                reception_pronoun = "لاستقبالها"
+        else:
+            all_female = all(s.gender == 'F' for s in students_queryset)
+            if all_female:
+                subject_phrase = "الطالبات المذكورات بياناتهن"
+                arrival_verb = "سيصلن يوم"
+                reception_pronoun = "لاستقبالهن"
+            else: # مجموعة مختلطة أو ذكور فقط
+                subject_phrase = "الطلاب المذكورين بياناتهم"
+                arrival_verb = "سيصلون يوم"
+                reception_pronoun = "لاستقبالهم"
+
+        # ملاحظة للمطور: هذه البيانات حاليًا ثابتة كما في الصورة
+        # في تطوير مستقبلي، يمكن جعلها حقولاً في النموذج
+        arrival_info = "يوم الثلاثاء 2024/03/05م"
+        delegate_name = "الأخ حسن محمد حسين الحامد"
+        
+        body_text = (
+            "نهديكم أطيب التحية وبالإشارة إلى الموضوع أعلاه نحيطكم علما بأن "
+            f"{subject_phrase} أدناه {arrival_verb} وعليه فإننا نفوض {delegate_name} "
+            f"مندوب من قبلنا {reception_pronoun} فنرجو منكم التوجيه إلى الجهات المعنية لتسهيل الإجراءات."
+        )
+
+        return {
+            # هذا الخطاب ليس له مخاطب محدد (إلى من يهمه الأمر)
+            'correspondent': None, 
+            'subject': 'الموضوع: تفويض مندوب لديكم في المطار لاستقبال طلاب لدينا',
+            'body_text': body_text,
+        }
+
+

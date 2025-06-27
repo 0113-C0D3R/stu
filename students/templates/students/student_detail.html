@@ -50,7 +50,7 @@
           <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAirport">المطار</button></h2>
           <div id="collapseAirport" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
             <div class="accordion-body p-0"><ul class="action-list">
-              <li><a href="#"><i class="fas fa-plane fa-fw text-info"></i> تفويض مندوب استقبال</a></li>
+              <li><a href="{% url 'students:generate_reception_delegate_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-user-shield fa-fw text-dark"></i>تفويض مندوب استقبال</a></li>
             </ul></div>
           </div>
         </div>
