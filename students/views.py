@@ -12,8 +12,7 @@ from django_countries import countries
 from django.utils import timezone
 from hijri_converter.convert import Gregorian
 from django.db import transaction
-
-# تم حذف "from . import views" لأنه يسبب خطأ
+from datetime import datetime
 from .models import Student, Correspondent, ExecutiveDirector, GeneratedLetter, ReferenceCounter
 from .forms import StudentForm, DocumentFormSet
 
@@ -556,49 +555,85 @@ class GenerateEntryPermitNSLetterView(BaseLetterView):
 class GenerateReceptionDelegateLetterView(BaseLetterView):
     """Generates the letter for authorizing a reception delegate."""
     letter_template_name = 'students/letters/reception_delegate_letter.html'
-    letter_type_code = 'RECPT' # رمز لـ Reception
+    letter_type_code = 'RECPT'
 
-    def get_letter_context(self, students_queryset):
-        
-        # --- منطق متقدم لتحديد الصياغة بناءً على العدد والجنس ---
-        count = students_queryset.count()
-        if count == 1:
-            student = students_queryset.first()
-            if student.gender == 'M':
-                subject_phrase = "الطالب المذكور بياناته"
-                arrival_verb = "سيصل يوم"
-                reception_pronoun = "لاستقباله"
-            else:
-                subject_phrase = "الطالبة المذكورة بياناتها"
-                arrival_verb = "ستصل يوم"
-                reception_pronoun = "لاستقبالها"
+    # لقد قمنا بتخصيص دالة render_letter بالكامل لهذا الكلاس
+    # لأنها تتعامل مع طلبات GET التي تحتوي على بيانات إضافية
+    def render_letter(self, request, students_queryset):
+        # استخراج البيانات الإضافية من رابط GET
+        arrival_date_str = request.GET.get('arrival_date')
+        delegate_name = request.GET.get('delegate_name', '[اسم المندوب]')
+
+        # حساب اليوم من التاريخ
+        try:
+            arrival_date_obj = datetime.strptime(arrival_date_str, '%Y-%m-%d').date()
+            arabic_weekdays = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+            arrival_day = arabic_weekdays[arrival_date_obj.weekday()]
+            formatted_arrival_date = arrival_date_obj.strftime('%Y/%m/%d')
+        except (ValueError, TypeError):
+            arrival_day = "[اليوم]"
+            formatted_arrival_date = "[التاريخ]"
+            
+        # إنشاء الرقم المرجعي
+        try:
+            with transaction.atomic():
+                counter, _ = ReferenceCounter.objects.select_for_update().get_or_create(letter_type_code=self.letter_type_code)
+                counter.last_sequence += 1
+                counter.save()
+                year_short = str(timezone.now().year)[-2:]
+                sequence_str = str(counter.last_sequence).zfill(3)
+                new_ref_number = f"{self.letter_type_code}-{year_short}-{sequence_str}"
+        except Exception as e:
+            messages.error(request, f"فشل إنشاء الرقم المرجعي: {e}")
+            return redirect(request.path_info)
+
+        # تجهيز النص الديناميكي للخطاب
+        student = students_queryset.first()
+        if student and student.gender == 'M':
+            subject_phrase = "الطالب المذكور بياناته"
+            arrival_verb = "سيصل"
+            reception_pronoun = "لاستقباله"
         else:
-            all_female = all(s.gender == 'F' for s in students_queryset)
-            if all_female:
-                subject_phrase = "الطالبات المذكورات بياناتهن"
-                arrival_verb = "سيصلن يوم"
-                reception_pronoun = "لاستقبالهن"
-            else: # مجموعة مختلطة أو ذكور فقط
-                subject_phrase = "الطلاب المذكورين بياناتهم"
-                arrival_verb = "سيصلون يوم"
-                reception_pronoun = "لاستقبالهم"
-
-        # ملاحظة للمطور: هذه البيانات حاليًا ثابتة كما في الصورة
-        # في تطوير مستقبلي، يمكن جعلها حقولاً في النموذج
-        arrival_info = "يوم الثلاثاء 2024/03/05م"
-        delegate_name = "الأخ حسن محمد حسين الحامد"
+            subject_phrase = "الطالبة المذكورة بياناتها"
+            arrival_verb = "ستصل"
+            reception_pronoun = "لاستقبالها"
         
         body_text = (
             "نهديكم أطيب التحية وبالإشارة إلى الموضوع أعلاه نحيطكم علما بأن "
-            f"{subject_phrase} أدناه {arrival_verb} وعليه فإننا نفوض {delegate_name} "
+            f"{subject_phrase} أدناه {arrival_verb} يوم {arrival_day} الموافق {formatted_arrival_date}م وعليه فإننا نفوض {delegate_name} "
             f"مندوب من قبلنا {reception_pronoun} فنرجو منكم التوجيه إلى الجهات المعنية لتسهيل الإجراءات."
         )
+        
+        # --- هذا هو التعديل المطلوب: جلب بيانات المدير التنفيذي ---
+        exec_dir = ExecutiveDirector.objects.first()
+        today = timezone.now().date()
+        hijri_today = Gregorian(today.year, today.month, today.day).to_hijri()
 
-        return {
-            # هذا الخطاب ليس له مخاطب محدد (إلى من يهمه الأمر)
-            'correspondent': None, 
+        context = {
+            'students': students_queryset,
+            'gregorian_date': today.strftime('%Y/%m/%d'),
+            'hijri_date': f"{hijri_today.year}/{hijri_today.month}/{hijri_today.day}",
+            'reference_number': new_ref_number,
+            'correspondent': None,
             'subject': 'الموضوع: تفويض مندوب لديكم في المطار لاستقبال طلاب لدينا',
             'body_text': body_text,
+            # تم تصحيح هذا الجزء لجلب البيانات بدلاً من إرسال قيمة فارغة
+            'exec_name': getattr(exec_dir, 'name', ''),
+            'exec_title': getattr(exec_dir, 'title', ''),
+            'exec_institute': getattr(exec_dir, 'institute', ''),
+            'signature_url': exec_dir.signature.url if exec_dir and exec_dir.signature else None,
         }
+
+        # تسجيل الخطاب وعرضه للطباعة
+        new_letter_record = GeneratedLetter.objects.create(reference_number=new_ref_number, letter_type=context.get('subject'), created_by=request.user)
+        new_letter_record.students.set(students_queryset)
+        
+        return render(request, self.letter_template_name, context)
+
+    # نعيد تعريف دالة post لتكون متوافقة مع الحالة الجماعية إذا أردنا استخدامها لاحقًا
+    def post(self, request, *args, **kwargs):
+        # في هذه الحالة، طلب POST سيعرض صفحة اختيار الطلاب مجددًا لإدخال البيانات
+        # لأن البيانات الإضافية (التاريخ والمندوب) ضرورية
+        return self.get(request, *args, **kwargs)
 
 

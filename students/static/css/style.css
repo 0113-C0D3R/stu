@@ -258,3 +258,11 @@ ul.action-list {
 .fa-user-shield:before {
     color: #b245d3;
 }
+
+div:where(.swal2-container) input:where(.swal2-input) {
+    margin-right: 0 !important;
+}
+
+p.text-muted {
+    text-align: center;
+}
