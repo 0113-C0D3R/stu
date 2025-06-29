@@ -7,10 +7,12 @@
             <h4 class="mb-0">{{ page_title|default:"اختيار طلاب" }}</h4>
         </div>
         <div class="card-body">
-            <p class="text-muted">من فضلك، اختر الطلاب الذين تريد إضافتهم إلى الخطاب ثم اضغط على "إنشاء الخطاب".</p>
-
-            <form method="post" action=""> {# <-- تم تعديل هذا السطر ليكون عامًا #}
+            <p class="text-muted">من فضلك، اختر الطلاب المطلوبين ثم املأ البيانات الإضافية إن وجدت.</p>
+            
+            <form method="post" action="" id="letter-form">
                 {% csrf_token %}
+                
+                <h5>1. اختيار الطلاب</h5>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -37,11 +39,23 @@
                         </tbody>
                     </table>
                 </div>
-
+                
+                <input type="hidden" name="arrival_date" id="arrival_date_hidden">
+                
                 <hr>
 
-                <div class="mt-3 text-center">
-                    <button type="submit" class="btn btn-primary px-4">
+                {% if view.letter_type_code == 'RECPT' %}
+                    <h5>2. بيانات إضافية (مطلوبة)</h5>
+                    <div class="row g-3">
+                         <div class="col-12">
+                             <label for="delegate_name_input" class="form-label delegate_name_label">اسم المندوب المفوض</label>
+                            <input type="text" class="form-control" id="delegate_name_input" name="delegate_name" value="الأخ حسن محمد حسين الحامد" required>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-4 text-center">
+                    <button type="submit" class="btn btn-primary px-4" id="generate-letter-btn">
                         <i class="fas fa-print me-2"></i>إنشاء الخطاب
                     </button>
                     <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-secondary">إلغاء</a>
@@ -53,12 +67,100 @@
 
 {% block extra_js %}
 <script>
-    document.getElementById('select-all').onclick = function() {
+    // --- كود تحديد الكل (يبقى كما هو) ---
+    document.getElementById('select-all').addEventListener('click', function() {
         const checkboxes = document.querySelectorAll('input[name="student_ids"]');
         for (const checkbox of checkboxes) {
             checkbox.checked = this.checked;
         }
+    });
+
+    // --- كود النافذة المنبثقة الاحترافي ---
+    const letterForm = document.getElementById('letter-form');
+    if (letterForm) {
+        letterForm.addEventListener('submit', function(event) {
+            const viewTypeCode = "{{ view.letter_type_code }}";
+            const needsPopup = ['RECPT', 'YEM-AW']; 
+
+            if (needsPopup.includes(viewTypeCode)) {
+                event.preventDefault();
+
+                let modalTitle = 'تحديد تاريخ الوصول';
+                let modalHtml = `
+                    <div style="text-align: right;">
+                        <div style="margin-bottom: 1rem;">
+                            <input type="text" id="swal-arrival-date" class="swal2-input" placeholder="انقر لاختيار تاريخ..." required>
+                        </div>
+                `;
+
+                if (viewTypeCode === 'RECPT') { 
+                    modalTitle = 'تفويض مندوب استقبال';
+                    modalHtml += `
+                        <div style="margin-bottom: 1rem;">
+                            <label for="swal-delegate-name" style="display: block; margin-bottom: .5rem; font-weight: 500;">اسم المندوب المفوض</label>
+                            <input type="text" id="swal-delegate-name" class="swal2-input" value="الأخ حسن محمد حسين الحامد" required>
+                        </div>
+                    `;
+                }
+                modalHtml += '</div>';
+
+                // --- إظهار نافذة SweetAlert2 ---
+                Swal.fire({
+                    title: modalTitle,
+                    html: modalHtml,
+                    showIcon: false, // <--- هذا هو السطر الجديد الذي يحل المشكلة
+                    confirmButtonText: 'متابعة وإنشاء الخطاب',
+                    cancelButtonText: 'إلغاء',
+                    showCancelButton: true,
+                    customClass: {
+                        popup: 'swal2-custom-popup',
+                        title: 'swal2-custom-title',
+                    },
+                    
+                    didOpen: () => {
+                        flatpickr("#swal-arrival-date", {
+                            dateFormat: "Y-m-d",
+                        });
+                    },
+                    preConfirm: () => {
+                        const data = { arrivalDate: document.getElementById('swal-arrival-date').value };
+                        if (!data.arrivalDate) {
+                            Swal.showValidationMessage('الرجاء اختيار تاريخ الوصول');
+                            return false;
+                        }
+                        if (viewTypeCode === 'RECPT') {
+                            data.delegateName = document.getElementById('swal-delegate-name').value;
+                            if (!data.delegateName) {
+                                Swal.showValidationMessage('الرجاء إدخال اسم المندوب');
+                                return false;
+                            }
+                        }
+                        return data;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let dateInput = document.createElement('input');
+                        dateInput.type = 'hidden';
+                        dateInput.name = 'arrival_date';
+                        dateInput.value = result.value.arrivalDate;
+                        letterForm.appendChild(dateInput);
+
+                        if (result.value.delegateName) {
+                            let delegateInput = document.createElement('input');
+                            delegateInput.type = 'hidden';
+                            delegateInput.name = 'delegate_name';
+                            delegateInput.value = result.value.delegateName;
+                            letterForm.appendChild(delegateInput);
+                        }
+                        letterForm.submit();
+                    }
+                });
+            } else {
+                letterForm.submit();
+            }
+        });
     }
 </script>
+
 {% endblock %}
 {% endblock %}

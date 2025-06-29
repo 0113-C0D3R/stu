@@ -259,10 +259,26 @@ ul.action-list {
     color: #b245d3;
 }
 
-div:where(.swal2-container) input:where(.swal2-input) {
+/* div:where(.swal2-container) input:where(.swal2-input) {
     margin-right: 0 !important;
-}
+} */
 
 p.text-muted {
     text-align: center;
+}
+
+.swal2-popup.swal2-modal.swal2-custom-popup.swal2-show {
+    width: 20% !important;
+}
+
+.swal2-container, .swal2-html-container {
+    margin: 0 !important;
+}
+
+div#swal2-html-container {
+    padding-right: 20px;
+}
+
+label[for="swal-delegate-name"], label[for="swal-arrival-date"] {
+    padding-right: 40px !important;
 }

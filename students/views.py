@@ -136,7 +136,12 @@ class BaseLetterView(LoginRequiredMixin, PermissionRequiredMixin, View):
             return self.render_letter(request, student_queryset) 
 
         all_students = Student.objects.all().order_by('first_name', 'last_name')
-        context = {'students': all_students, 'page_title': 'اختيار طلاب لإنشاء خطاب'}
+        # نقوم بإضافة الـ view نفسه إلى السياق لكي يتمكن القالب من الوصول لخصائصه
+        context = {
+            'students': all_students,
+            'page_title': 'اختيار طلاب لإنشاء خطاب',
+            'view': self  # <--- هذا هو السطر الحاسم الذي تم إضافته
+        }
         return render(request, self.selection_template_name, context)
 
     def post(self, request, *args, **kwargs):
@@ -637,3 +642,79 @@ class GenerateReceptionDelegateLetterView(BaseLetterView):
         return self.get(request, *args, **kwargs)
 
 
+class GenerateYemeniaAirwaysLetterView(BaseLetterView):
+    """Generates the letter for Yemenia Airways."""
+    letter_template_name = 'students/letters/yemenia_airways_letter.html'
+    letter_type_code = 'YEM-AW' # رمز لـ Yemenia Airways
+
+    # بما أن هذا الخطاب يحتاج بيانات إضافية، سنقوم بتخصيص دالة post
+    def post(self, request, *args, **kwargs):
+        selected_student_ids = request.POST.getlist('student_ids')
+        if not selected_student_ids:
+            messages.error(request, 'لم تقم باختيار أي طالب.')
+            return redirect(request.path_info)
+        
+        students_queryset = Student.objects.filter(id__in=selected_student_ids)
+
+        # استخراج تاريخ الوصول من النموذج
+        arrival_date_str = request.POST.get('arrival_date')
+
+        # 1. إنشاء الرقم المرجعي
+        try:
+            with transaction.atomic():
+                counter, _ = ReferenceCounter.objects.select_for_update().get_or_create(letter_type_code=self.letter_type_code)
+                counter.last_sequence += 1
+                counter.save()
+                year_short = str(timezone.now().year)[-2:]
+                sequence_str = str(counter.last_sequence).zfill(3)
+                new_ref_number = f"{self.letter_type_code}-{year_short}-{sequence_str}"
+        except Exception as e:
+            messages.error(request, f"فشل إنشاء الرقم المرجعي: {e}")
+            return redirect(request.path_info)
+
+        # 2. تجهيز النص الديناميكي للخطاب
+        correspondent = Correspondent.objects.filter(category='yemenia_airways').first()
+        try:
+            arrival_date_obj = datetime.strptime(arrival_date_str, '%Y-%m-%d').date()
+            arabic_weekdays = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+            arrival_day = arabic_weekdays[arrival_date_obj.weekday()]
+            formatted_arrival_date = arrival_date_obj.strftime('%Y/%m/%d')
+        except (ValueError, TypeError):
+            arrival_day = "[اليوم]"
+            formatted_arrival_date = "[التاريخ]"
+
+        count = students_queryset.count()
+        if count == 1:
+            student = students_queryset.first()
+            subject_phrase = "الطالب الموضح بياناته" if student.gender == 'M' else "الطالبة الموضحة بياناتها"
+        else:
+            subject_phrase = "الطلاب المذكورة بياناتهم"
+
+        body_text = (
+            "نهديكم أطيب التحية كما نحيطكم علما بأن "
+            f"{subject_phrase} أدناه قد تقدموا بطلب الدراسة لدينا بالمركز وتم قبول طلبهم فنرجو منكم التعاون في السماح لهم بالدخول وتسهيل اجراءاتهم وسيصلون يوم "
+            f"{arrival_day} {formatted_arrival_date}م عبر مطار سيئون فنرجو منكم التوجيه إلى الجهات المعنية لتسهيل الإجراءات."
+        )
+        
+        # 3. تجميع السياق الكامل
+        exec_dir = ExecutiveDirector.objects.first()
+        today = timezone.now().date()
+        hijri_today = Gregorian(today.year, today.month, today.day).to_hijri()
+        context = {
+            'students': students_queryset,
+            'gregorian_date': today.strftime('%Y/%m/%d'),
+            'hijri_date': f"{hijri_today.year}/{hijri_today.month}/{hijri_today.day}",
+            'reference_number': new_ref_number,
+            'correspondent': correspondent,
+            'subject': None, # هذا الخطاب ليس له موضوع
+            'body_text': body_text,
+            'exec_name': getattr(exec_dir, 'name', ''),
+            'exec_title': getattr(exec_dir, 'title', ''),
+            'exec_institute': getattr(exec_dir, 'institute', ''),
+            'signature_url': exec_dir.signature.url if exec_dir and exec_dir.signature else None,
+        }
+
+        # 4. تسجيل الخطاب وعرضه للطباعة
+        new_letter_record = GeneratedLetter.objects.create(reference_number=new_ref_number, letter_type="خطاب الخطوط اليمنية", created_by=request.user)
+        new_letter_record.students.set(students_queryset)
+        return render(request, self.letter_template_name, context)

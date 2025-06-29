@@ -19,6 +19,7 @@ from .views import (
     GenerateEntryPermitLetterView,
     GenerateEntryPermitNSLetterView,
     GenerateReceptionDelegateLetterView,
+     GenerateYemeniaAirwaysLetterView,
 )
 
 app_name = 'students'
@@ -45,6 +46,7 @@ urlpatterns = [
     path('letter/entry-permit/', GenerateEntryPermitLetterView.as_view(), name='generate_entry_permit_letter'),
     path('letter/entry-permit-ns/', GenerateEntryPermitNSLetterView.as_view(), name='generate_entry_permit_ns_letter'),
     path('letter/reception-delegate/', GenerateReceptionDelegateLetterView.as_view(), name='generate_reception_delegate_letter'),
+    path('letter/yemenia-airways/', GenerateYemeniaAirwaysLetterView.as_view(), name='generate_yemenia_airways_letter'),
     
     # 2. تم حذف "views." من السطر التالي لأنه لم يعد ضروريًا
     path('letter/residence-renewal/', GenerateResidenceRenewalLetterView.as_view(), name='generate_residence_renewal_letter'),
