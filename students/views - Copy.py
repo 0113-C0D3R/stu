@@ -174,8 +174,8 @@ class BaseLetterView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
         context = {
             'students': students_queryset,
-            'gregorian_date': today.strftime('%Y/%m/%d'),
-            'hijri_date': f"{hijri_today.year}/{hijri_today.month:02d}/{hijri_today.day:02d}",
+            'gregorian_date': today.strftime('%d/%m/%Y'),
+            'hijri_date': f"{hijri_today.day:02d}/{hijri_today.month:02d}/{hijri_today.year}",
             'exec_name': getattr(exec_dir, 'name', ''),
             'exec_title': getattr(exec_dir, 'title', ''),
             'exec_institute': getattr(exec_dir, 'institute', ''),
@@ -197,40 +197,37 @@ class BaseLetterView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
 
 class GenerateMedicalCheckLetterView(BaseLetterView):
-    """Generates the letter for medical check-ups."""
+    """Generates the letter for medical check-ups (for a single student)."""
     letter_template_name = 'students/letters/medical_check_letter.html'
     letter_type_code = 'MED'
-    page_title = 'إنشاء خطاب فحص طبي'
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
+        # نبحث عن الجهة المسؤولة عن الفحص الطبي
         correspondent = Correspondent.objects.filter(category='المختبر الوطني').first()
 
-        # منطق تحديد النص بناءً على عدد الطلاب وجنسهم
-        if students_queryset.count() == 1:
-            student = students_queryset.first()
-            word = "الأخ" if student and student.gender == 'M' else "الأخت"
-            gender_specific_phrase = f"لـ {word} الموضحة بياناته أدناه"
-        else:
-            gender_specific_phrase = "للإخوة الموضحة أسمائهم في الجدول أدناه"
-        
-        body_text = (
-            "بالإشارة إلى الموضوع أعلاه، "
-            f"نرجو تكرمكم بعمل فحص طبي {gender_specific_phrase} لترتيب إقامة الدراسة لدينا بالمركز."
-        )
+        # --- تم تبسيط المنطق ليتعامل مع طالب واحد فقط ---
+        student = students_queryset.first() # نفترض دائمًا وجود طالب واحد
 
-        context = {
+        if student and student.gender == 'M':
+            # الحالة 1: طالب ذكر
+            dynamic_phrase = "للأخ الموضحة بياناته في الجدول أدناه"
+        else:
+            # الحالة 2: طالبة أنثى
+            dynamic_phrase = "للأخت الموضحة بياناتها في الجدول أدناه"
+        
+        # الأجزاء الثابتة من النص
+        greeting = "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنيين لكم دوام التوفيق والنجاح في مهامكم.."
+        main_clause_start = "بالإشارة إلى الموضوع أعلاه، نرجو تكرمكم بعمل فحص "
+        main_clause_end = " لترتيب إقامة الدراسة لدينا بالمركز."
+        
+        # تجميع النص النهائي
+        body_text = f"{greeting}\n\n{main_clause_start}{dynamic_phrase}{main_clause_end}"
+
+        return {
             'subject': 'الموضوع: طلب فحص طبي',
             'body_text': body_text,
             'correspondent': correspondent,
         }
-
-        # --- هذا هو المنطق الجديد لتحديد سلوك ما بعد الطباعة ---
-        # إذا كان الطلب فرديًا (GET)، أرسل إشارة الإغلاق
-        if request.method == 'GET':
-            context['post_print_action'] = 'close'
-        # إذا كان الطلب جماعيًا (POST)، لن يتم إرسال الإشارة، وسيتم تنفيذ قسم else في القالب
-        
-        return context
 
 
 class GenerateExitReentryVisaLetterView(BaseLetterView):
@@ -238,7 +235,7 @@ class GenerateExitReentryVisaLetterView(BaseLetterView):
     letter_template_name = 'students/letters/exit_reentry_visa_letter.html'
     letter_type_code = 'V'
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
 
@@ -269,7 +266,7 @@ class GenerateResidenceRenewalLetterView(BaseLetterView):
     letter_template_name = 'students/letters/residence_renewal_letter.html'
     letter_type_code = 'REV' # رمز مختصر لـ Residence
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         # نفترض أن المخاطب هو نفسه مدير الجوازات
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
@@ -306,7 +303,7 @@ class TransferResidenceLetterView(BaseLetterView):
     letter_template_name = 'students/letters/transfer_residence_letter.html'
     letter_type_code = 'TRA' # رمز لـ Transfer
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
 
@@ -348,7 +345,7 @@ class GenerateStudyVisaLetterView(BaseLetterView):
     letter_template_name = 'students/letters/study_visa_letter.html'
     letter_type_code = 'SVI' # رمز لتأشيرة دراسة
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         # المخاطب هو مدير الجوازات
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
@@ -378,7 +375,7 @@ class GenerateIssueResidenceLetterView(BaseLetterView):
     letter_template_name = 'students/letters/issue_residence_letter.html'
     letter_type_code = 'IRE' # رمز لـ Issue Residence
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         # المخاطب هو مدير الجوازات
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
@@ -409,7 +406,7 @@ class GenerateNormalExitVisaLetterView(BaseLetterView):
     letter_template_name = 'students/letters/normal_exit_visa_letter.html'
     letter_type_code = 'NEX' # رمز لـ Normal Exit
 
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         # المخاطب هو مدير الجوازات
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
@@ -437,15 +434,14 @@ class GenerateNormalExitVisaLetterView(BaseLetterView):
 class GenerateFinalExitVisaLetterView(BaseLetterView):
     """Generates the letter for a final exit visa request."""
     letter_template_name = 'students/letters/final_exit_visa_letter.html'
-    letter_type_code = 'FEX' # تم توحيد الرمز ليكون أوضح
+    letter_type_code = 'FEX'
 
-    # --- هذا هو التعديل الرئيسي: إضافة request إلى تعريف الدالة ---
-    def get_letter_context(self, request, students_queryset):
+    def get_letter_context(self, students_queryset):
         # المخاطب هو مدير الجوازات
         correspondent = Correspondent.objects.filter(category='مدير الجوازات').first()
         student = students_queryset.first()
 
-        # تحديد الصياغة بناءً على الجنس
+        # --- تحديد الصياغة بناءً على الجنس ---
         if student and student.gender == 'M':
             # نص المذكر
             gender_specific_phrase = "بأنه الأخ الموضح بياناته في الجدول أدناه يريد تأشيرة خروج نهائي"
@@ -465,15 +461,14 @@ class GenerateFinalExitVisaLetterView(BaseLetterView):
         }
 
 
+
 class GenerateNewStudentsListLetterView(BaseLetterView):
     """Generates the letter for a list of new students."""
     letter_template_name = 'students/letters/new_students_list_letter.html'
-    letter_type_code = 'NSTU'
-    page_title = 'إنشاء كشف بأسماء الطلاب الجدد'
+    letter_type_code = 'NSTU' # رمز لـ New Students
 
-    def get_letter_context(self, request, students_queryset):
-        # استخدام فئة إنجليزية (أفضل ممارسة)
-        # تأكد من وجود هذه الفئة في لوحة التحكم لجهة "الأمن السياسي"
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الأمن السياسي
         correspondent = Correspondent.objects.filter(category='الأمن السياسي').first()
         
         body_text = (
@@ -481,34 +476,59 @@ class GenerateNewStudentsListLetterView(BaseLetterView):
             "وبالإشارة إلى الموضوع أعلاه نرجو تكرمكم بالاطلاع على كشف الطلاب الجدد بالفخرية للدراسات الشرعية:"
         )
 
-        context = {
+        return {
             'subject': 'الموضوع: كشف بأسماء الطلاب الجدد',
             'body_text': body_text,
             'correspondent': correspondent,
         }
-
-        # --- هذا هو المنطق الديناميكي المطلوب ---
-        # إذا كان الطلب فرديًا (GET)، أرسل إشارة الإغلاق
-        if request.method == 'GET':
-            context['post_print_action'] = 'close'
-        
-        # إذا كان الطلب جماعيًا (POST)، لن يتم إضافة الإشارة،
-        # وبالتالي سينفذ القالب الجزء الخاص بالعودة للرئيسية (else)
-        
-        return context
-        
 
 
 
 class GenerateEntryPermitLetterView(BaseLetterView):
     """Generates the letter for an entry permit."""
     letter_template_name = 'students/letters/entry_permit_letter.html'
-    letter_type_code = 'ENP' # تم توحيد الرمز
-    page_title = 'إنشاء موافقة دخول'
+    letter_type_code = 'ENP' # رمز لـ Entry Permit
 
-    # --- هذا هو التعديل الرئيسي: إضافة request إلى تعريف الدالة ---
-    def get_letter_context(self, request, students_queryset):
-        # تم تغيير الفئة لتكون باللغة الإنجليزية (أفضل ممارسة)
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الأمن القومي
+        correspondent = Correspondent.objects.filter(category='الأمن القومي').first()
+
+        # --- منطق متقدم لتحديد الصياغة بناءً على العدد والجنس ---
+        count = students_queryset.count()
+        if count == 1:
+            student = students_queryset.first()
+            if student.gender == 'M':
+                dynamic_phrase = "تقدم إلينا الأخ الموضح بياناته في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبه فنرجو منكم التعاون في السماح له بالدخول"
+            else:
+                dynamic_phrase = "تقدمت إلينا الأخت الموضحة بياناتها في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبها فنرجو منكم التعاون في السماح لها بالدخول"
+        else:
+            # التحقق إذا كانت المجموعة كلها إناث
+            all_female = all(s.gender == 'F' for s in students_queryset)
+            if all_female:
+                dynamic_phrase = "تقدمن إلينا الأخوات الموضحة بياناتهن في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبهن فنرجو منكم التعاون في السماح لهن بالدخول"
+            else: # مجموعة مختلطة أو ذكور فقط
+                dynamic_phrase = "تقدم إلينا الإخوة الموضحة بياناتهم في الجدول أدناه بطلب للدراسة لدينا بالمركز وتم قبول طلبهم فنرجو منكم التعاون في السماح لهم بالدخول"
+        
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"وبالإشارة إلى الموضوع أعلاه نود إفادتكم بأنه {dynamic_phrase} وتسهيل اجراءاتهم:"
+        )
+
+        return {
+            'subject': 'الموضوع: توجيهاتكم بمنح موافقة دخول',
+            'body_text': body_text,
+            'correspondent': correspondent,
+        }
+
+
+
+class GenerateEntryPermitNSLetterView(BaseLetterView):
+    """Generates the letter for an entry permit (National Security)."""
+    letter_template_name = 'students/letters/entry_permit_ns_letter.html'
+    letter_type_code = 'NSEN'
+
+    def get_letter_context(self, students_queryset):
+        # المخاطب هو مدير الأمن القومي
         correspondent = Correspondent.objects.filter(category='الأمن القومي').first()
 
         # منطق متقدم لتحديد الصياغة بناءً على العدد والجنس
@@ -535,48 +555,14 @@ class GenerateEntryPermitLetterView(BaseLetterView):
             'subject': 'الموضوع: توجيهاتكم بمنح موافقة دخول',
             'body_text': body_text,
             'correspondent': correspondent,
-        }
-
-
-
-class GenerateEntryPermitNSLetterView(BaseLetterView):
-    """Generates the letter for a list of new students."""
-    letter_template_name = 'students/letters/new_students_list_letter.html'
-    letter_type_code = 'NSEN'
-    page_title = 'إنشاء كشف بأسماء الطلاب الجدد'
-
-    def get_letter_context(self, request, students_queryset):
-        # استخدام فئة إنجليزية (أفضل ممارسة)
-        # تأكد من وجود هذه الفئة في لوحة التحكم لجهة "الأمن السياسي"
-        correspondent = Correspondent.objects.filter(category='الأمن القومي').first()
-        
-        body_text = (
-            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
-            "وبالإشارة إلى الموضوع أعلاه نرجو تكرمكم بالاطلاع على كشف الطلاب الجدد بالفخرية للدراسات الشرعية:"
-        )
-
-        context = {
-            'subject': 'الموضوع: كشف بأسماء الطلاب الجدد',
-            'body_text': body_text,
-            'correspondent': correspondent,
-        }
-
-        # --- هذا هو المنطق الديناميكي المطلوب ---
-        # إذا كان الطلب فرديًا (يأتي من صفحة تفاصيل الطالب عبر GET)، أرسل إشارة الإغلاق
-        if request.method == 'GET':
-            context['post_print_action'] = 'close'
-        
-        # إذا كان الطلب جماعيًا (يأتي من صفحة اختيار الطلاب عبر POST)، 
-        # لن يتم إضافة الإشارة، وبالتالي سينفذ القالب الجزء الخاص بالعودة للرئيسية (else)
-        
-        return context
+        }        
 
 
 
 class GenerateReceptionDelegateLetterView(BaseLetterView):
     """Generates the letter for authorizing a reception delegate."""
     letter_template_name = 'students/letters/reception_delegate_letter.html'
-    letter_type_code = 'RECP'
+    letter_type_code = 'RECPT'
 
     # لقد قمنا بتخصيص دالة render_letter بالكامل لهذا الكلاس
     # لأنها تتعامل مع طلبات GET التي تحتوي على بيانات إضافية
@@ -633,7 +619,7 @@ class GenerateReceptionDelegateLetterView(BaseLetterView):
         context = {
             'students': students_queryset,
             'gregorian_date': today.strftime('%Y/%m/%d'),
-            'hijri_date': f"{hijri_today.year}/{hijri_today.month:02d}/{hijri_today.day:02d}",
+            'hijri_date': f"{hijri_today.year}/{hijri_today.month}/{hijri_today.day}",
             'reference_number': new_ref_number,
             'correspondent': None,
             'subject': 'الموضوع: تفويض مندوب لديكم في المطار لاستقبال طلاب لدينا',
@@ -661,7 +647,7 @@ class GenerateReceptionDelegateLetterView(BaseLetterView):
 class GenerateYemeniaAirwaysLetterView(BaseLetterView):
     """Generates the letter for Yemenia Airways."""
     letter_template_name = 'students/letters/yemenia_airways_letter.html'
-    letter_type_code = 'AIR' # رمز لـ Yemenia Airways
+    letter_type_code = 'YEM-AW' # رمز لـ Yemenia Airways
 
     # بما أن هذا الخطاب يحتاج بيانات إضافية، سنقوم بتخصيص دالة post
     def post(self, request, *args, **kwargs):
@@ -719,7 +705,7 @@ class GenerateYemeniaAirwaysLetterView(BaseLetterView):
         context = {
             'students': students_queryset,
             'gregorian_date': today.strftime('%Y/%m/%d'),
-            'hijri_date': f"{hijri_today.year}/{hijri_today.month:02d}/{hijri_today.day:02d}",
+            'hijri_date': f"{hijri_today.year}/{hijri_today.month}/{hijri_today.day}",
             'reference_number': new_ref_number,
             'correspondent': correspondent,
             'subject': None, # هذا الخطاب ليس له موضوع
@@ -809,7 +795,7 @@ class GenerateGroupAcceptanceLetterView(BaseLetterView):
     'To Whom It May Concern'.
     """
     letter_template_name = 'students/letters/acceptance_statement_letter.html'
-    letter_type_code = 'ACP' # Group Acceptance
+    letter_type_code = 'G-ACCEPT' # Group Acceptance
 
     def get_letter_context(self, request, students_queryset):
         # هذا الخطاب الجماعي ليس له مخاطب محدد
@@ -839,34 +825,4 @@ class GenerateGroupAcceptanceLetterView(BaseLetterView):
             'subject': 'الموضوع: إفادة قبول للدراسة لدينا بالمركز',
             'body_text': body_text,
             'correspondent': correspondent,
-            'post_print_action': 'close',
         }
-
-
-class GenerateEnrollmentCertificateLetterView(BaseLetterView):
-    """Generates the letter for a proof of enrollment certificate."""
-    letter_template_name = 'students/letters/enrollment_certificate_letter.html'
-    letter_type_code = 'ECE' # رمز لـ Enrollment Certificate
-
-    def get_letter_context(self, request, students_queryset):
-        student = students_queryset.first()
-
-        # --- تحديد الصياغة بناءً على الجنس ---
-        if student and student.gender == 'M':
-            # نص المذكر
-            gender_specific_phrase = "الأخ المذكور بياناته أدناه طالب لدينا بالمركز وقد أعطي هذه الإفادة بناء على طلبه"
-        else:
-            # نص المؤنث
-            gender_specific_phrase = "الأخت المذكورة بياناتها أدناه طالبة لدينا بالمركز وقد أعطيت هذه الإفادة بناء على طلبها"
-        
-        body_text = (
-            "نهديكم أطيب التحية وبالإشارة إلى الموضوع أعلاه نحيطكم علما بأن "
-            f"{gender_specific_phrase}."
-        )
-
-        return {
-            'subject': 'الموضوع: إفادة قيد',
-            'body_text': body_text,
-            'correspondent': None, # هذا الخطاب موجه إلى "من يهمه الأمر"
-            'post_print_action': 'close',
-        }        

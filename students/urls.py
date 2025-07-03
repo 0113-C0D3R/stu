@@ -19,7 +19,10 @@ from .views import (
     GenerateEntryPermitLetterView,
     GenerateEntryPermitNSLetterView,
     GenerateReceptionDelegateLetterView,
-     GenerateYemeniaAirwaysLetterView,
+    GenerateYemeniaAirwaysLetterView,
+    GenerateAcceptanceStatementLetterView,
+    GenerateGroupAcceptanceLetterView,
+    GenerateEnrollmentCertificateLetterView,
 )
 
 app_name = 'students'
@@ -47,6 +50,9 @@ urlpatterns = [
     path('letter/entry-permit-ns/', GenerateEntryPermitNSLetterView.as_view(), name='generate_entry_permit_ns_letter'),
     path('letter/reception-delegate/', GenerateReceptionDelegateLetterView.as_view(), name='generate_reception_delegate_letter'),
     path('letter/yemenia-airways/', GenerateYemeniaAirwaysLetterView.as_view(), name='generate_yemenia_airways_letter'),
+    path('letter/acceptance-statement/', GenerateAcceptanceStatementLetterView.as_view(), name='generate_acceptance_statement_letter'),
+    path('letter/group-acceptance-statement/', GenerateGroupAcceptanceLetterView.as_view(), name='generate_group_acceptance_letter'),
+    path('letter/enrollment-certificate/', GenerateEnrollmentCertificateLetterView.as_view(), name='generate_enrollment_certificate_letter'),
     
     # 2. تم حذف "views." من السطر التالي لأنه لم يعد ضروريًا
     path('letter/residence-renewal/', GenerateResidenceRenewalLetterView.as_view(), name='generate_residence_renewal_letter'),

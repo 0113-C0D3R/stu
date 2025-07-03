@@ -41,7 +41,7 @@
           <div id="collapseSecurity" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
             <div class="accordion-body p-0"><ul class="action-list">
               <li><a href="{% url 'students:generate_new_students_list_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-shield-alt fa-fw text-secondary"></i>كشف الطلاب - الأمن السياسي</a></li>
-              <li><a href="{% url 'students:generate_entry_permit_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-user-shield fa-fw text-dark"></i>موافقة دخول - الأمن القومي</a></li>
+              <li><a href="{% url 'students:generate_entry_permit_ns_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-user-shield fa-fw text-dark"></i>موافقة دخول - الأمن القومي</a></li>
               
             </ul></div>
           </div>
@@ -58,8 +58,8 @@
           <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCorrespondence">مراسلات أخرى</button></h2>
           <div id="collapseCorrespondence" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
             <div class="accordion-body p-0"><ul class="action-list">
-              <li><a href="#"><i class="fas fa-file-alt fa-fw text-secondary"></i> إفادة قيد</a></li>
-              <li><a href="#"><i class="fas fa-stamp fa-fw text-warning"></i> إفادة قبول للدراسة</a></li>
+              <li><a href="{% url 'students:generate_enrollment_certificate_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-file-alt fa-fw text-secondary"></i> إفادة قيد</a></li>
+              <li><a href="#" class="acceptance-letter-link" data-url="{% url 'students:generate_acceptance_statement_letter' %}?student_id={{ student.id }}"><i class="fas fa-check-circle fa-fw text-success"></i> إفادة قبول للدراسة</a></li>
             </ul></div>
           </div>
         </div>

@@ -9,7 +9,7 @@
         <div class="card-body">
             <p class="text-muted">من فضلك، اختر الطلاب المطلوبين ثم املأ البيانات الإضافية إن وجدت.</p>
             
-            <form method="post" action="" id="letter-form">
+            <form method="post" action="" id="letter-form" data-view-type-code="{{ view.letter_type_code }}">
                 {% csrf_token %}
                 
                 <h5>1. اختيار الطلاب</h5>
@@ -80,7 +80,7 @@
     if (letterForm) {
         letterForm.addEventListener('submit', function(event) {
             const viewTypeCode = "{{ view.letter_type_code }}";
-            const needsPopup = ['RECPT', 'YEM-AW']; 
+            const needsPopup = ['RECPT', 'AIR']; 
 
             if (needsPopup.includes(viewTypeCode)) {
                 event.preventDefault();

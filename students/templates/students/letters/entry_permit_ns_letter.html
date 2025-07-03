@@ -85,10 +85,15 @@
         window.print();
     };
 
-    window.onafterprint = function(event) {
-        window.location.href = "{% url 'home' %}";
+    window.onafterprint = function() {
+        {% if post_print_action == 'close' %}
+            window.close();
+        {% else %}
+            window.location.href = "{% url 'home' %}";
+        {% endif %}
     };
 </script>
+
     
 </body>
 </html>

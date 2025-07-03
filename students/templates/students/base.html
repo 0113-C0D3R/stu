@@ -8,7 +8,7 @@
     <title>{% block title %}إدارة الطلاب{% endblock %}</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.6">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.8">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -55,20 +55,49 @@
           </ul>
         </li>
 
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="correspondenceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-envelope"></i> المراسلات
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="correspondenceDropdown">
-            {% if perms.students.can_create_correspondence %}
-            <li><a class="dropdown-item" href="{% url 'students:generate_medical_check_letter' %}">فحص طبي (جماعي)</a></li>
-            <li><a class="dropdown-item" href="{% url 'students:generate_new_students_list_letter' %}">الأمن السياسي (جماعي)</a></li>
-            <li><a class="dropdown-item" href="{% url 'students:generate_entry_permit_ns_letter' %}">الأمن القومي (جماعي)</a></li>
-            <li><a class="dropdown-item" href="{% url 'students:generate_yemenia_airways_letter' %}">الخطوط اليمنية (جماعي)</a></li>
-            {% endif %}
-          </ul>
-        </li>
 
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="groupLettersDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-users-cog me-1"></i> مراسلات جماعية
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupLettersDropdown">
+            
+            <li><h6 class="dropdown-header">الرسائل والمخاطبات</h6></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'students:generate_group_acceptance_letter' %}">
+                <i class="fas fa-check-circle fa-fw text-success"></i> إفادة قبول جماعية
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+            
+            <li><h6 class="dropdown-header">جهات أمنية</h6></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'students:generate_new_students_list_letter' %}">
+                <i class="fas fa-shield-alt fa-fw text-dark"></i> موافقة دخول الأمن السياسي
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'students:generate_entry_permit_ns_letter' %}">
+                <i class="fas fa-user-shield fa-fw text-dark"></i> موافقة دخول الأمن القومي
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider"></li>
+            
+            <li><h6 class="dropdown-header">سفر وخدمات</h6></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'students:generate_yemenia_airways_letter' %}">
+                <i class="fas fa-plane fa-fw text-danger"></i> خطاب الخطوط اليمنية
+              </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="{% url 'students:generate_medical_check_letter' %}">
+                    <i class="fas fa-first-aid fa-fw text-danger"></i> فحص طبي جماعي
+                </a>
+            </li>
+          </ul>
+        </li>        
       </ul>
 
       <ul class="navbar-nav ms-auto">
@@ -106,7 +135,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    
     <script>
         // تفعيل Lightbox
         document.addEventListener("DOMContentLoaded", function() {
