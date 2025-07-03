@@ -22,7 +22,7 @@
 
       <div class="accordion shadow-sm" id="directiveAccordion">
         <div class="accordion-item">
-          <h2 class="accordion-header"><button class="accordion-button " type="button" data-bs-toggle="collapse" data-bs-target="#collapsePassport">الجوازات</button></h2>
+          <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePassport">الجوازات</button></h2>
           <div id="collapsePassport" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
             <div class="accordion-body p-0"><ul class="action-list">
               <li><a href="{% url 'students:generate_study_visa_letter' %}?student_id={{ student.id }}" target="_blank"><i class="fas fa-stamp fa-fw text-warning"></i>تأشيرة دراسة</a></li>
