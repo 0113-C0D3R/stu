@@ -9,7 +9,7 @@
         <div class="card-body">
             <p class="text-muted">من فضلك، اختر الطلاب المطلوبين ثم املأ البيانات الإضافية إن وجدت.</p>
             
-            <form method="post" action="" id="letter-form" data-view-type-code="{{ view.letter_type_code }}">
+            <form method="post" action="{{ form_action_url }}" id="letter-form"  data-view-type-code="{{ view.letter_type_code }}">
                 {% csrf_token %}
                 
                 <h5>1. اختيار الطلاب</h5>

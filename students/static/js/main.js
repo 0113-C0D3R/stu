@@ -99,5 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-}); // <-- القوس الخاص بـ DOMContentLoaded
-// تم حذف القوس الزائد الذي كان هنا
+
+    
+});

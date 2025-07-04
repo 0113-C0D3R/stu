@@ -23,6 +23,7 @@ from .views import (
     GenerateAcceptanceStatementLetterView,
     GenerateGroupAcceptanceLetterView,
     GenerateEnrollmentCertificateLetterView,
+    
 )
 
 app_name = 'students'

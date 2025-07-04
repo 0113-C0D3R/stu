@@ -15,7 +15,7 @@ from django.db import transaction
 from datetime import datetime
 from .models import Student, Correspondent, ExecutiveDirector, GeneratedLetter, ReferenceCounter
 from .forms import StudentForm, DocumentFormSet
-
+from django.urls import reverse
 
 # ==============================================================================
 #                                CORE VIEWS
@@ -869,4 +869,9 @@ class GenerateEnrollmentCertificateLetterView(BaseLetterView):
             'body_text': body_text,
             'correspondent': None, # هذا الخطاب موجه إلى "من يهمه الأمر"
             'post_print_action': 'close',
-        }        
+        }
+
+
+
+
+
