@@ -8,10 +8,11 @@
         </div>
         <div class="card-body">
             <p class="text-muted">من فضلك، اختر الطلاب المطلوبين ثم املأ البيانات الإضافية إن وجدت.</p>
-            
+
+            {# =========================  نموذج اختيار الطلاب  ========================= #}
             <form method="post" action="{{ form_action_url }}" id="letter-form"  data-view-type-code="{{ view.letter_type_code }}">
                 {% csrf_token %}
-                
+
                 <h5>1. اختيار الطلاب</h5>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
@@ -39,11 +40,13 @@
                         </tbody>
                     </table>
                 </div>
-                
+
+                {# حقل خفي لتاريخ الوصول (يستخدم مع خطابات أخرى غير الرحلة) #}
                 <input type="hidden" name="arrival_date" id="arrival_date_hidden">
-                
+
                 <hr>
 
+                {# بيانات إضافية خاصة بخطاب RECPT فقط #}
                 {% if view.letter_type_code == 'RECPT' %}
                     <h5>2. بيانات إضافية (مطلوبة)</h5>
                     <div class="row g-3">
@@ -53,7 +56,7 @@
                         </div>
                     </div>
                 {% endif %}
-                
+
                 <div class="mt-4 text-center">
                     <button type="submit" class="btn btn-primary px-4" id="generate-letter-btn">
                         <i class="fas fa-print me-2"></i>إنشاء الخطاب
@@ -67,7 +70,7 @@
 
 {% block extra_js %}
 <script>
-    // --- كود تحديد الكل (يبقى كما هو) ---
+    // ========== كود تحديد الكل ========== //
     document.getElementById('select-all').addEventListener('click', function() {
         const checkboxes = document.querySelectorAll('input[name="student_ids"]');
         for (const checkbox of checkboxes) {
@@ -75,92 +78,135 @@
         }
     });
 
-    // --- كود النافذة المنبثقة الاحترافي ---
+    // ========== منطق النوافذ المنبثقة ========== //
     const letterForm = document.getElementById('letter-form');
     if (letterForm) {
         letterForm.addEventListener('submit', function(event) {
             const viewTypeCode = "{{ view.letter_type_code }}";
-            const needsPopup = ['RECPT', 'AIR']; 
+            // أضفنا G-TRIP إلى القائمة
+            const needsPopup = ['RECPT', 'AIR', 'G-TRIP'];
 
             if (needsPopup.includes(viewTypeCode)) {
                 event.preventDefault();
 
-                let modalTitle = 'تحديد تاريخ الوصول';
-                let modalHtml = `
-                    <div style="text-align: right;">
-                        <div style="margin-bottom: 1rem;">
-                            <input type="text" id="swal-arrival-date" class="swal2-input" placeholder="انقر لاختيار تاريخ..." required>
-                        </div>
-                `;
+                let modalTitle = '';
+                let modalHtml  = '';
 
-                if (viewTypeCode === 'RECPT') { 
-                    modalTitle = 'تفويض مندوب استقبال';
-                    modalHtml += `
-                        <div style="margin-bottom: 1rem;">
-                            <label for="swal-delegate-name" style="display: block; margin-bottom: .5rem; font-weight: 500;">اسم المندوب المفوض</label>
-                            <input type="text" id="swal-delegate-name" class="swal2-input" value="الأخ حسن محمد حسين الحامد" required>
-                        </div>
-                    `;
+                // --- نافذة بيانات الرحلة الجماعية G‑TRIP ---
+                if (viewTypeCode === 'G-TRIP') {
+                    modalTitle = 'بيانات الرحلة';
+                    modalHtml  = `
+                        <div style="text-align: right;">
+                            <p class="text-muted" style="margin-bottom: 1.5rem;">الرجاء إدخال وجهة وتاريخ الرحلة.</p>
+                            <div class="swal-form-group" style="margin-bottom:1rem;">
+                                <label for="swal-destination" style="display:block;margin-bottom:.5rem;font-weight:500;">الوجهة</label>
+                                <input type="text" id="swal-destination" class="swal2-input" placeholder="مثال: شبوة" required>
+                            </div>
+                            <div class="swal-form-group">
+                                <label for="swal-travel-date" style="display:block;margin-bottom:.5rem;font-weight:500;">تاريخ الرحلة</label>
+                                <input type="text" id="swal-travel-date" class="swal2-input" placeholder="انقر لاختيار تاريخ..." required>
+                            </div>
+                        </div>`;
                 }
-                modalHtml += '</div>';
+
+                // --- نافذة خطابات AIR/RECPT (موجودة مسبقًا) ---
+                if (viewTypeCode === 'AIR' || viewTypeCode === 'RECPT') {
+                    modalTitle = (viewTypeCode === 'AIR') ? 'تحديد تاريخ الوصول' : 'تفويض مندوب استقبال';
+                    modalHtml  = `
+                        <div style="text-align: right;">
+                            <div style="margin-bottom: 1rem;">
+                                <label for="swal-arrival-date" style="display:block;margin-bottom:.5rem;font-weight:500;">تاريخ الوصول</label>
+                                <input type="text" id="swal-arrival-date" class="swal2-input" placeholder="انقر لاختيار تاريخ..." required>
+                            </div>
+                            ${viewTypeCode === 'RECPT' ? `
+                                <div style="margin-bottom: 1rem;">
+                                    <label for="swal-delegate-name" style="display:block;margin-bottom:.5rem;font-weight:500;">اسم المندوب المفوض</label>
+                                    <input type="text" id="swal-delegate-name" class="swal2-input" value="الأخ حسن محمد حسين الحامد" required>
+                                </div>` : ''}
+                        </div>`;
+                }
 
                 // --- إظهار نافذة SweetAlert2 ---
                 Swal.fire({
                     title: modalTitle,
-                    html: modalHtml,
-                    showIcon: false, // <--- هذا هو السطر الجديد الذي يحل المشكلة
-                    confirmButtonText: 'متابعة وإنشاء الخطاب',
+                    html:  modalHtml,
+                    confirmButtonText: 'إنشاء الخطاب',
                     cancelButtonText: 'إلغاء',
                     showCancelButton: true,
                     customClass: {
                         popup: 'swal2-custom-popup',
                         title: 'swal2-custom-title',
                     },
-                    
                     didOpen: () => {
-                        flatpickr("#swal-arrival-date", {
-                            dateFormat: "Y-m-d",
-                        });
+                        if (viewTypeCode === 'G-TRIP') {
+                            flatpickr("#swal-travel-date", { dateFormat: "Y-m-d" });
+                        } else {
+                            flatpickr("#swal-arrival-date", { dateFormat: "Y-m-d" });
+                        }
                     },
                     preConfirm: () => {
-                        const data = { arrivalDate: document.getElementById('swal-arrival-date').value };
-                        if (!data.arrivalDate) {
-                            Swal.showValidationMessage('الرجاء اختيار تاريخ الوصول');
-                            return false;
-                        }
-                        if (viewTypeCode === 'RECPT') {
-                            data.delegateName = document.getElementById('swal-delegate-name').value;
-                            if (!data.delegateName) {
-                                Swal.showValidationMessage('الرجاء إدخال اسم المندوب');
+                        let data = {};
+
+                        // ------------- تحقق من الإدخالات ------------- //
+                        if (viewTypeCode === 'G-TRIP') {
+                            data.destination  = document.getElementById('swal-destination').value;
+                            data.travel_date  = document.getElementById('swal-travel-date').value;
+                            if (!data.destination || !data.travel_date) {
+                                Swal.showValidationMessage('الرجاء إدخال كافة البيانات');
                                 return false;
+                            }
+                        } else {
+                            data.arrivalDate = document.getElementById('swal-arrival-date').value;
+                            if (!data.arrivalDate) {
+                                Swal.showValidationMessage('الرجاء اختيار تاريخ الوصول');
+                                return false;
+                            }
+                            if (viewTypeCode === 'RECPT') {
+                                data.delegateName = document.getElementById('swal-delegate-name').value;
+                                if (!data.delegateName) {
+                                    Swal.showValidationMessage('الرجاء إدخال اسم المندوب');
+                                    return false;
+                                }
                             }
                         }
                         return data;
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        let dateInput = document.createElement('input');
-                        dateInput.type = 'hidden';
-                        dateInput.name = 'arrival_date';
-                        dateInput.value = result.value.arrivalDate;
-                        letterForm.appendChild(dateInput);
+                        // ---------- إنشاء الحقول المخفية طبقًا لنوع الخطاب ---------- //
+                        if (viewTypeCode === 'G-TRIP') {
+                            ['destination', 'travel_date'].forEach((key) => {
+                                let input = document.createElement('input');
+                                input.type  = 'hidden';
+                                input.name  = key;
+                                input.value = result.value[key];
+                                letterForm.appendChild(input);
+                            });
+                        } else {
+                            let dateInput = document.createElement('input');
+                            dateInput.type  = 'hidden';
+                            dateInput.name  = 'arrival_date';
+                            dateInput.value = result.value.arrivalDate;
+                            letterForm.appendChild(dateInput);
 
-                        if (result.value.delegateName) {
-                            let delegateInput = document.createElement('input');
-                            delegateInput.type = 'hidden';
-                            delegateInput.name = 'delegate_name';
-                            delegateInput.value = result.value.delegateName;
-                            letterForm.appendChild(delegateInput);
+                            if (result.value.delegateName) {
+                                let delegateInput = document.createElement('input');
+                                delegateInput.type  = 'hidden';
+                                delegateInput.name  = 'delegate_name';
+                                delegateInput.value = result.value.delegateName;
+                                letterForm.appendChild(delegateInput);
+                            }
                         }
+                        // بعد إضافة الحقول الخفية، أرسل النموذج
                         letterForm.submit();
                     }
                 });
             } else {
+                // الخطابات التي لا تحتاج بيانات إضافية
                 letterForm.submit();
             }
         });
     }
 </script>
-
 {% endblock %}
 {% endblock %}

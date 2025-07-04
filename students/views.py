@@ -873,5 +873,54 @@ class GenerateEnrollmentCertificateLetterView(BaseLetterView):
 
 
 
+# أضف هذا الكلاس الجديد في ملف views.py
 
+class GenerateGroupTripCertificateView(BaseLetterView):
+    """Generates the letter for a group trip certificate."""
+    letter_template_name = 'students/letters/group_trip_certificate.html'
+    letter_type_code = 'G-TRIP' # رمز لـ Group Trip
+    page_title = 'إنشاء إفادة رحلة جماعية'
+
+    def get_letter_context(self, request, students_queryset):
+        # استخراج البيانات الإضافية من النموذج الذي يظهر في النافذة المنبثقة
+        travel_date_str = request.POST.get('travel_date')
+        destination = request.POST.get('destination', '[الوجهة]')
+
+        # حساب اليوم والتاريخ الهجري تلقائيًا
+        try:
+            travel_date_obj = datetime.strptime(travel_date_str, '%Y-%m-%d').date()
+            arabic_weekdays = ["الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
+            travel_day = arabic_weekdays[travel_date_obj.weekday()]
+            formatted_travel_date = travel_date_obj.strftime('%d/%m/%Y')
+            hijri_travel_date_obj = Gregorian(travel_date_obj.year, travel_date_obj.month, travel_date_obj.day).to_hijri()
+            formatted_hijri_date = f"{hijri_travel_date_obj.day:02d}/{hijri_travel_date_obj.month:02d}/{hijri_travel_date_obj.year}"
+        except (ValueError, TypeError):
+            travel_day, formatted_travel_date, formatted_hijri_date = "[اليوم]", "[التاريخ]", "[التاريخ الهجري]"
+        
+        # منطق لتحديد الصياغة بناءً على العدد والجنس
+        if students_queryset.count() > 1 and all(s.gender == 'F' for s in students_queryset):
+             subject_phrase = "الطالبات المذكورة بياناتهن"
+             pronoun_they = "وهن متوجهات"
+             pronoun_them = "لهن"
+        else:
+             subject_phrase = "الإخوة الموضحة بياناتهم"
+             pronoun_they = "وهم متوجهون"
+             pronoun_them = "لهم"
+
+        body_text = (
+            "يهديكم مركز الفخرية للدراسات الشرعية أطيب التحايا متمنين لكم دوام التوفيق والنجاح في مهامكم.. "
+            f"نود إفادتكم بأن {subject_phrase} في الجدول أدناه طلاب لدينا وهم تحت مسؤوليتنا وعلى كفالتنا، "
+            f"{pronoun_they} إلى {destination} يوم {travel_day} تاريخ {formatted_travel_date}م الموافق {formatted_hijri_date}هـ، "
+            f"ثم العودة لمواصلة دراستهم لدينا فنرجو منكم السماح {pronoun_them} بالمرور وتسهيل اجراءاتهم."
+        )
+
+        return {
+            'correspondent': None, # إلى من يهمه الأمر
+            'subject': "الموضوع: إفادة قيد", # هذا هو الموضوع الموجود في الصورة
+            'body_text': body_text,
+            'post_print_action': 'redirect'
+        }
+
+
+        
 

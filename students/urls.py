@@ -24,6 +24,7 @@ from .views import (
     GenerateGroupAcceptanceLetterView,
     GenerateEnrollmentCertificateLetterView,
     
+    GenerateGroupTripCertificateView,
 )
 
 app_name = 'students'
@@ -54,6 +55,8 @@ urlpatterns = [
     path('letter/acceptance-statement/', GenerateAcceptanceStatementLetterView.as_view(), name='generate_acceptance_statement_letter'),
     path('letter/group-acceptance-statement/', GenerateGroupAcceptanceLetterView.as_view(), name='generate_group_acceptance_letter'),
     path('letter/enrollment-certificate/', GenerateEnrollmentCertificateLetterView.as_view(), name='generate_enrollment_certificate_letter'),
+
+    path('letter/group-trip-certificate/', GenerateGroupTripCertificateView.as_view(), name='generate_group_trip_certificate'),
     
     # 2. تم حذف "views." من السطر التالي لأنه لم يعد ضروريًا
     path('letter/residence-renewal/', GenerateResidenceRenewalLetterView.as_view(), name='generate_residence_renewal_letter'),
