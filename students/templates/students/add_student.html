@@ -2,54 +2,165 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-  <h2>إضافة طالب</h2>
 
-  <form method="post" enctype="multipart/form-data" action="{% url 'students:student_create' %}">
-      {% csrf_token %}
+{# ---------------- Page Content ---------------- #}
+<div class="container-fluid mt-4">
+  <h3 class="mb-3">إضافة طالب جديد</h3>
+  <form id="student-form" method="post" enctype="multipart/form-data" action="{% url 'students:student_create' %}" novalidate>
+    {% csrf_token %}
 
-      {# ======== حقول بيانات الطالب ======== #}
-      {{ form|crispy }}
+    <div class="row g-4">
+      <div class="col-lg-9">
+        {# --- Nav Tabs --- #}
+        <ul class="nav nav-tabs" id="studentFormTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">بيانات أساسية</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="passport-tab" data-bs-toggle="tab" data-bs-target="#passport" type="button" role="tab">بيانات الجواز</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="residence-tab" data-bs-toggle="tab" data-bs-target="#residence" type="button" role="tab">بيانات الإقامة</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab">التواصل / الوظيفة</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="companion-tab" data-bs-toggle="tab" data-bs-target="#companion" type="button" role="tab">مرافق</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">المستندات</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="misc-tab" data-bs-toggle="tab" data-bs-target="#misc" type="button" role="tab">أخرى</button>
+          </li>
+        </ul>
 
-      <hr class="my-4">
+        {# --- Tabs Content --- #}
+        <div class="tab-content" id="studentFormTabsContent">
 
-      {# ======== قسم رفع المستندات المرتبطة بالطالب ======== #}
-      <h4 class="mt-4">المستندات المتعلقة بالطالب</h4>
-
-      {# ملف إدارة الـ InlineFormSet #}
-      {{ document_formset.management_form }}
-
-      {% for doc_form in document_formset.forms %}
-        <div class="row mb-3 border rounded p-3">
-          <div class="col-md-3">
-            <label for="{{ doc_form.doc_type.id_for_label }}" class="form-label">نوع المستند</label>
-            {{ doc_form.doc_type }}
-            {{ doc_form.doc_type.errors }}
-          </div>
-          <div class="col-md-4">
-            <label for="{{ doc_form.file.id_for_label }}" class="form-label">رفع الملف</label>
-            {{ doc_form.file }}
-            {{ doc_form.file.errors }}
-          </div>
-          <div class="col-md-4">
-            <label for="{{ doc_form.caption.id_for_label }}" class="form-label">الوصف التوضيحي</label>
-            {{ doc_form.caption }}
-            {{ doc_form.caption.errors }}
-          </div>
-          {% if doc_form.instance.pk %}
-            <div class="col-md-1 d-flex align-items-end">
-              <div class="form-check">
-                {{ doc_form.DELETE }}
-                <label class="form-check-label" for="{{ doc_form.DELETE.id_for_label }}">حذف</label>
-              </div>
+          {# ---------- Basic Info ---------- #}
+          <div class="tab-pane fade show active" id="basic" role="tabpanel">
+            {{ form.non_field_errors }}
+            <div class="row g-3">
+              {{ form.reference_number|as_crispy_field }}
+              {{ form.first_name|as_crispy_field }}
+              {{ form.middle_name|as_crispy_field }}
+              {{ form.last_name|as_crispy_field }}
+              {{ form.birth_date|as_crispy_field }}
+              {{ form.gender|as_crispy_field }}
+              {{ form.nationality|as_crispy_field }}
+              {{ form.image|as_crispy_field }}
             </div>
-          {% endif %}
+          </div>
+
+          {# ---------- Passport ---------- #}
+          <div class="tab-pane fade" id="passport" role="tabpanel">
+            <div class="row g-3">
+              {{ form.passport_number|as_crispy_field }}
+              {{ form.passport_number_old|as_crispy_field }}
+              {{ form.place_of_issue|as_crispy_field }}
+              {{ form.date_of_issued|as_crispy_field }}
+              {{ form.visa_number|as_crispy_field }}
+              {{ form.entry_date|as_crispy_field }}
+              {{ form.end_date|as_crispy_field }}
+            </div>
+          </div>
+
+          {# ---------- Residence ---------- #}
+          <div class="tab-pane fade" id="residence" role="tabpanel">
+            <div class="row g-3">
+              {{ form.residence_number|as_crispy_field }}
+              {{ form.place_of_issued_residence|as_crispy_field }}
+              {{ form.residence_issue_place|as_crispy_field }}
+              {{ form.residence_issued_date|as_crispy_field }}
+              {{ form.residence_end_date|as_crispy_field }}
+            </div>
+          </div>
+
+          {# ---------- Contact / Job ---------- #}
+          <div class="tab-pane fade" id="contact" role="tabpanel">
+            <div class="row g-3">
+              {{ form.phone_number|as_crispy_field }}
+              {{ form.marital_status|as_crispy_field }}
+              {{ form.job|as_crispy_field }}
+            </div>
+          </div>
+
+          {# ---------- Companion ---------- #}
+          <div class="tab-pane fade" id="companion" role="tabpanel">
+            <div class="row g-3">
+              {{ form.companion_name|as_crispy_field }}
+              {{ form.companion_nationality|as_crispy_field }}
+              {{ form.companion_relationship|as_crispy_field }}
+              {{ form.companion_passport_number|as_crispy_field }}
+              {{ form.companion_residence_number|as_crispy_field }}
+              {{ form.companion_residence_end_date|as_crispy_field }}
+            </div>
+          </div>
+
+          {# ---------- Documents (dynamic formset placeholder) ---------- #}
+          <div class="tab-pane fade" id="documents" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">المستندات المرفقة</h6>
+              <button type="button" id="add-document-btn" class="btn btn-sm btn-outline-primary"><i class="fas fa-plus"></i> إضافة مستند</button>
+            </div>
+            <div id="documents-container">
+              {% for formset_form in document_formset.forms %}
+                <div class="document-row border rounded p-3 mb-3">
+                  {{ formset_form|crispy }}
+                </div>
+              {% endfor %}
+            </div>
+            {{ document_formset.management_form }}
+
+            {# مخطط لصف فارغ ينسخه JS عند إضافة مستند #}
+            <template id="empty-document-row">
+              <div class="document-row border rounded p-3 mb-3">
+                {{ document_formset.empty_form|crispy }}
+                <button type="button" class="btn btn-danger btn-sm btn-delete-doc mt-2"><i class="fas fa-trash"></i> حذف</button>
+              </div>
+            </template>
+          </div>
+
+          {# ---------- Misc ---------- #}
+          <div class="tab-pane fade" id="misc" role="tabpanel">
+            <div class="row g-3">
+              {{ form.registration_number|as_crispy_field }}
+              {{ form.registration_place|as_crispy_field }}
+              {{ form.registration_date|as_crispy_field }}
+              {{ form.end_registration_date|as_crispy_field }}
+              {{ form.port_name|as_crispy_field }}
+              {{ form.type_of_services|as_crispy_field }}
+              {{ form.issuing_authority|as_crispy_field }}
+              {{ form.purpose|as_crispy_field }}
+              {{ form.note|as_crispy_field }}
+            </div>
+          </div>
+
         </div>
-      {% endfor %}
 
-      <button type="submit" class="btn btn-primary">حفظ الطالب</button>
+        <div class="mt-4">
+          <button type="submit" class="btn btn-success px-4"><i class="fas fa-save"></i> حفظ الطالب</button>
+          <button type="button" class="btn btn-secondary ms-2" onclick="history.back()">إلغاء</button>
+        </div>
+      </div>
+
+      {# ---------- Sidebar Summary ---------- #}
+      <div class="col-lg-3">
+        <div class="card sticky-summary shadow-sm">
+          <div class="card-header text-center">ملخص الطالب</div>
+          <div class="card-body" id="student-summary">
+            <span class="text-muted">يظهر أثناء الكتابة…</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </form>
+</div>
 
-  <!-- تفعيل Flatpickr -->
+{# ---------------- Extra JS ---------------- #}
   <script>
       document.addEventListener("DOMContentLoaded", function() {
           flatpickr(".flatpickr", {

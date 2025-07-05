@@ -284,8 +284,20 @@ label[for="swal-correspondent-name"], label[for="swal-correspondent-title"] {
 }
 
 
-button.swal2-confirm.swal2-styled {
+button.swal2-confirm.swal2-styled, button.btn.btn-success.px-4 {
     background-color: #0D6EFD;
 }
 
+.tab-pane {
+  padding-top: 1rem;
+  padding-right: 1.1rem;
+}
+
+.sticky-summary { 
+  position: sticky; top: 6rem; 
+}
+    
+.img-preview { 
+  max-width: 120px; 
+}
 

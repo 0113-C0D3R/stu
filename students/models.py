@@ -19,8 +19,9 @@ class Student(models.Model):
     ]
 
     first_name = models.CharField(max_length=100, verbose_name="الاسم الأول")
+    middle_name = models.CharField("الاسم الأوسط", max_length=50, blank=True)
     last_name = models.CharField(max_length=100, verbose_name="اللقب")
-    birth_date = models.DateField(verbose_name="تاريخ الميلاد")
+    birth_date  = models.DateField("تاريخ الميلاد", null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, verbose_name="الجنس")
     image = models.ImageField(upload_to='students_images/', blank=True, null=True, verbose_name="صورة الطالب")
     # ملاحظة: لديك حقول مكررة مثل image و nationality و note، قمت بإبقائها كما هي لتجنب أي مشاكل
