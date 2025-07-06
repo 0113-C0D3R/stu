@@ -38,6 +38,11 @@ table {
     font-weight: bold;  /* نص عريض */
 }
 
+.table td,
+.table th {
+    vertical-align: middle !important;
+}
+
 .card-body {
     padding: 20px;  /* تباعد داخلي */
 }
@@ -301,3 +306,50 @@ button.swal2-confirm.swal2-styled, button.btn.btn-success.px-4 {
   max-width: 120px; 
 }
 
+span#progress-label {
+    margin: 0 5px 0 5px !important;
+}
+
+.flex-grow-1.progress.rounded-0 {
+    margin-right: 5px;
+}
+
+h3.pref-num {
+    margin-top: -7px !important;
+}
+
+h3.pref-num span {
+    font-size: 14px;
+    background-color: #000;
+    color: #ffffff !important;
+    padding: 0 5px 0 5px;
+    border-radius: 4px;
+}
+
+.card-header-title {
+    font-size: 16px;
+}
+
+.border-pink  { border: 1px solid #e83e8c !important; }
+.text-pink    { color:#e83e8c !important; }
+
+.card.border-primary, .card.border-info, .card.border-warning, .card.border-pink{
+  border-width:2px;
+}
+
+.table img {
+  object-fit: cover;
+  height: 40px;
+  width: 40px;
+}
+
+[data-bs-theme="dark"] .card {
+  background-color:#1e1e1e;
+  border-color:#333;
+}
+
+/* الأبيض فى الوضع الفاتح */
+#themeToggle i { color:#ffffff; }
+
+/* لون مميّز عند تفعيل الوضع الداكن (مثلاً أصفر الشمس) */
+[data-bs-theme="dark"] #themeToggle i { color:#ffc107; }

@@ -6,7 +6,7 @@
 {# ---------------- Page Content ---------------- #}
 <div class="container-fluid mt-4">
   <h3 class="mb-3">إضافة طالب جديد</h3>
-  <form id="student-form" method="post" enctype="multipart/form-data" action="{% url 'students:student_create' %}" novalidate>
+  <form id="student-form" method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
 
     <div class="row g-4">
@@ -43,7 +43,6 @@
           <div class="tab-pane fade show active" id="basic" role="tabpanel">
             {{ form.non_field_errors }}
             <div class="row g-3">
-              {{ form.reference_number|as_crispy_field }}
               {{ form.first_name|as_crispy_field }}
               {{ form.middle_name|as_crispy_field }}
               {{ form.last_name|as_crispy_field }}
@@ -150,6 +149,14 @@
       <div class="col-lg-3">
         <div class="card sticky-summary shadow-sm">
           <div class="card-header text-center">ملخص الطالب</div>
+
+          <div class="d-flex align-items-center mb-1">
+            <div class="flex-grow-1 progress rounded-0" style="height:6px">
+              <div id="progress-bar" class="progress-bar bg-success" style="width:0%"></div>
+            </div>
+            <span id="progress-label" class="ms-2 small">0%</span>
+          </div>
+          
           <div class="card-body" id="student-summary">
             <span class="text-muted">يظهر أثناء الكتابة…</span>
           </div>
@@ -160,13 +167,91 @@
   </form>
 </div>
 
+
+
 {# ---------------- Extra JS ---------------- #}
+{% block extra_js %}
+  <!-- Flatpickr -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ar.js"></script>
+
   <script>
-      document.addEventListener("DOMContentLoaded", function() {
-          flatpickr(".flatpickr", {
-              dateFormat: "Y-m-d",  // تنسيق التاريخ
-              defaultDate: "today", // تعيين اليوم كتاريخ افتراضي
-          });
-      });
+  document.addEventListener("DOMContentLoaded", () => {
+
+    /* 1) تهيئة Flatpickr لكل الحقول ذات الفئة flatpickr */
+    document.querySelectorAll(".flatpickr").forEach(el => el.type = "text");
+    flatpickr(".flatpickr", { dateFormat: "Y-m-d", locale: "ar" });
+
+    /* 2) عناصر الملخّص والتقدّم */
+    const summaryBox  = document.getElementById("student-summary");
+    const fullNameIds = ["id_first_name", "id_middle_name", "id_last_name"];
+    const label       = document.getElementById("progress-label");
+    const requiredIds = [
+      "id_first_name",
+      "id_last_name",
+      "id_nationality",
+      "id_gender",
+      "id_passport_number",
+    ];
+
+    /* أضف شريط التقدّم داخل بطاقة الملخّص لو لم يكن موجودًا */
+    let progressBar = document.getElementById("progress-bar");
+    if (!progressBar && summaryBox) {
+      const container = document.createElement("div");
+      container.className = "progress rounded-0";
+      container.style.height = "6px";
+
+      progressBar = document.createElement("div");
+      progressBar.id = "progress-bar";
+      progressBar.className = "progress-bar bg-success";
+      progressBar.style.width = "0%";
+
+      container.appendChild(progressBar);
+      summaryBox.parentNode.insertBefore(container, summaryBox);
+    }
+
+    /* حساب النسبة */
+    function updateProgress() {
+      const filled = requiredIds.filter(id => {
+        const el = document.getElementById(id);
+        return el && el.value.trim();
+      }).length;
+      const percent = Math.round((filled / requiredIds.length) * 100);
+      progressBar.style.width = percent + "%";
+      progressBar.setAttribute("aria-valuenow", percent);
+      label.textContent = percent + "%"; 
+    }
+
+    /* تحديث ملخّص الطالب */
+    function updateSummary() {
+      const name = fullNameIds
+        .map(id => document.getElementById(id)?.value.trim())
+        .filter(Boolean)
+        .join(" ");
+
+      const nationality =
+        document.getElementById("id_nationality")?.selectedOptions[0]?.text || "—";
+
+      const passport = document.getElementById("id_passport_number")?.value || "—";
+
+      summaryBox.innerHTML = `
+        <ul class="list-unstyled mb-0 small">
+          <li><strong>الاسم:</strong> ${name || "—"}</li>
+          <li><strong>الجنسية:</strong> ${nationality}</li>
+          <li><strong>جواز السفر:</strong> ${passport}</li>
+        </ul>`;
+      updateProgress();
+    }
+
+    /* اربط المستمعات على كامل النموذج */
+    const form = document.getElementById("student-form");
+    if (form) {
+      form.addEventListener("input",  updateSummary);
+      form.addEventListener("change", updateSummary);
+      updateSummary();   // تحديث أوّلي لحالة الصفحة
+    }
+  });
+  
   </script>
+{% endblock %}
 {% endblock %}

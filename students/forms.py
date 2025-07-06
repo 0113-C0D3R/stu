@@ -7,6 +7,7 @@ from crispy_forms.layout import Submit
 class StudentForm(forms.ModelForm):
     class Meta:
         model = Student
+        exclude = ["reference_number"]   # امنعه من الظهور
         fields = '__all__'
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'form-control flatpickr'}),

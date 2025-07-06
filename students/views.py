@@ -12,28 +12,93 @@ from django_countries import countries
 from django.utils import timezone
 from hijri_converter.convert import Gregorian
 from django.db import transaction
-from datetime import datetime
+from datetime import datetime, timedelta
 from .models import Student, Correspondent, ExecutiveDirector, GeneratedLetter, ReferenceCounter
 from .forms import StudentForm, DocumentFormSet
 from django.urls import reverse
 
+import json
+from django.http import JsonResponse
+from django.db.models import Count
+from django.views.decorators.http import require_GET
 # ==============================================================================
 #                                CORE VIEWS
 # ==============================================================================
 
 class HomeView(LoginRequiredMixin, TemplateView):
-    template_name = 'students/home.html'
+    template_name = "students/home.html"
+
+    # ────────────────────────────────────────────────
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        male_students = Student.objects.filter(gender='M').count()
-        female_students = Student.objects.filter(gender='F').count()
-        nationality_counts = Counter(Student.objects.values_list('nationality', flat=True))
-        context['male_students'] = male_students
-        context['female_students'] = female_students
-        context['nationality_labels'] = [countries.name(code) for code in nationality_counts.keys() if code]
-        context['nationality_counts'] = list(nationality_counts.values())
-        context['page_title'] = 'لوحة التحكم الرئيسية'
+
+        # ــ السطران المطلوبان يوضعان هنا (قبل أو بعد إحصاءاتك الأخرى) ــ
+        years_qs = Student.objects.dates("registration_date", "year", order="DESC")
+        context["years"] = [d.year for d in years_qs]
+
+
+        # ── إحصاءات أساسية ──────────────────────────
+        male_students   = Student.objects.filter(gender="M").count()
+        female_students = Student.objects.filter(gender="F").count()
+        total_students  = male_students + female_students
+
+        soon     = timezone.now().date() + timedelta(days=30)
+        expiring = Student.objects.filter(
+            residence_end_date__isnull=False,
+            residence_end_date__lte=soon,
+        ).count()
+
+        # ── بيانات الرسم حسب الجنسية ────────────────
+        nationality_counts = Counter(
+            Student.objects.values_list("nationality", flat=True)
+        )
+        nationality_labels  = list(nationality_counts.keys())   # أمثلة: "YE", "EG"
+        nationality_values  = list(nationality_counts.values())
+
+        # ── أحدث 5 طلاب مضافين ─────────────────────
+        latest_students = Student.objects.order_by("-id")[:2]
+
+        # ── تحديث السياق ───────────────────────────
+        context.update({
+            "male_students":   male_students,
+            "female_students": female_students,
+            "total_students":  total_students,
+            "expiring":        expiring,
+
+            "nationality_labels": nationality_labels,
+            "nationality_counts": nationality_values,
+
+            "latest_students": latest_students,
+
+            "page_title": "لوحة التحكم الرئيسية",
+        })
         return context
+
+
+@require_GET
+def dashboard_data(request):
+    year = request.GET.get("year")
+    qs = Student.objects.all()
+    if year:
+        qs = qs.filter(registration_date__year=year)
+
+    nationality = (qs.values("nationality")
+                     .annotate(c=Count("id"))
+                     .order_by("nationality"))
+    labels  = [n["nationality"] or "—" for n in nationality]
+    counts  = [n["c"] for n in nationality]
+
+    male   = qs.filter(gender="M").count()
+    female = qs.filter(gender="F").count()
+
+    return JsonResponse({
+        "nationality_labels": labels,
+        "nationality_counts": counts,
+        "male": male,
+        "female": female,
+    })
+
+
 
 
 class StudentListView(LoginRequiredMixin, ListView):
@@ -57,60 +122,101 @@ class StudentListView(LoginRequiredMixin, ListView):
 class StudentDetailView(LoginRequiredMixin, DetailView):
     model = Student
     template_name = 'students/student_detail.html'
-    pk_url_kwarg = 'student_id'
     context_object_name = 'student'
 
 
 class StudentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     permission_required = 'students.add_student'
+
     model = Student
     form_class = StudentForm
     template_name = 'students/add_student.html'
     success_url = reverse_lazy('students:student_list')
+
+    # -------- context: نضيف الـ formset -------- #
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'document_formset' not in context:
-            context['document_formset'] = DocumentFormSet(self.request.POST or None, self.request.FILES or None)
+            context['document_formset'] = DocumentFormSet(
+                self.request.POST or None,
+                self.request.FILES or None,
+            )
         return context
+
+    # -------- POST مخصّص يبنى formset -------- #
+    def post(self, request, *args, **kwargs):
+        self.object = None
+        form = self.get_form()
+        formset = DocumentFormSet(request.POST, request.FILES)
+
+        if form.is_valid() and formset.is_valid():
+            return self.form_valid(form, formset)
+        else:
+            return self.form_invalid(form, formset)
+
+    # -------- حفظ الطالب والمستندات -------- #
     def form_valid(self, form, formset):
         self.object = form.save()
         formset.instance = self.object
         formset.save()
-        messages.success(self.request, f"تم إضافة الطالب '{self.object.full_name}' بنجاح.")
+        messages.success(self.request, f"تم إضافة الطالب «{self.object.full_name}» بنجاح.")
         return redirect(self.get_success_url())
+
     def form_invalid(self, form, formset):
-        messages.error(self.request, 'يرجى تصحيح الأخطاء أدناه.')
-        return self.render_to_response(self.get_context_data(form=form, document_formset=formset))
+        messages.error(self.request, "يرجى تصحيح الأخطاء أدناه.")
+        context = self.get_context_data(form=form)
+        context['document_formset'] = formset
+        return self.render_to_response(context)
+
 
 
 class StudentUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    permission_required = 'students.change_student'
+    permission_required = "students.change_student"
     model = Student
     form_class = StudentForm
-    template_name = 'students/student_edit.html'
-    pk_url_kwarg = 'student_id'
+    template_name = "students/add_student.html"
+
     def get_success_url(self):
-        return reverse_lazy('students:student_detail', kwargs={'student_id': self.object.id})
+        return reverse_lazy("students:student_detail", kwargs={"pk": self.object.pk})
+
+    # نحضّر الـ formset ونستخدمه فى form_valid
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if 'document_formset' not in context:
-            context['document_formset'] = DocumentFormSet(self.request.POST or None, self.request.FILES or None, instance=self.object)
+        if "document_formset" not in context:
+            context["document_formset"] = DocumentFormSet(instance=self.object)
         return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        formset = DocumentFormSet(
+            request.POST, request.FILES, instance=self.object
+        )
+        if form.is_valid() and formset.is_valid():
+            return self.form_valid(form, formset)
+        return self.form_invalid(form, formset)
+
+    # التوقيع القياسي + formset من post()
     def form_valid(self, form, formset):
-        form.save()
+        self.object = form.save()
         formset.save()
-        messages.success(self.request, f"تم تحديث بيانات الطالب '{self.object.full_name}' بنجاح.")
+        messages.success(request=self.request,
+            message=f"تم تحديث بيانات الطالب «{self.object.full_name}» بنجاح.")
         return redirect(self.get_success_url())
+
     def form_invalid(self, form, formset):
-        messages.error(self.request, 'يرجى تصحيح الأخطاء أدناه.')
-        return self.render_to_response(self.get_context_data(form=form, document_formset=formset))
+        messages.error(self.request, "يرجى تصحيح الأخطاء أدناه.")
+        context = self.get_context_data(form=form)
+        context["document_formset"] = formset
+        return self.render_to_response(context)
+
+
 
 
 class StudentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = 'students.delete_student'
     model = Student
     template_name = 'students/student_confirm_delete.html'
-    pk_url_kwarg = 'student_id'
     success_url = reverse_lazy('students:student_list')
     def form_valid(self, form):
         messages.success(self.request, f"تم حذف الطالب '{self.object.full_name}' بنجاح.")
@@ -878,7 +984,7 @@ class GenerateEnrollmentCertificateLetterView(BaseLetterView):
 class GenerateGroupTripCertificateView(BaseLetterView):
     """Generates the letter for a group trip certificate."""
     letter_template_name = 'students/letters/group_trip_certificate.html'
-    letter_type_code = 'G-TRIP' # رمز لـ Group Trip
+    letter_type_code = 'PPS' # رمز لـ Group Trip
     page_title = 'إنشاء إفادة رحلة جماعية'
 
     def get_letter_context(self, request, students_queryset):

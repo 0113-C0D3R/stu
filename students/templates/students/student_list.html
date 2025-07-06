@@ -15,11 +15,11 @@
 <h2>قائمة الطلاب</h2>
 <table class="table table-striped table-bordered">
     <thead>
-        <tr>
+        <tr class="card-header-title">
+            <th>ID</th>
             <th>الاسم الأول</th>
             <th>الجنسية</th>
             <th>رقم الجواز</th>
-            <th>الرقم المرجعي</th>
             <th>تاريخ انتهاء الإقامة</th>
             <th>الصورة</th>
         </tr>
@@ -27,8 +27,9 @@
     <tbody>
         {% for student in students %}
             <tr>
+                <td>{{ student.reference_number|default:"—" }}</td>
                 <td>
-                    <a href="{% url 'students:student_detail' student_id=student.id %}">
+                    <a href="{% url 'students:student_detail' pk=student.id %}">
                         {{ student.first_name }}
                     </a>
                 </td>
@@ -38,7 +39,6 @@
                     {{ student.nationality.name }}
                 </td>
                 <td>{{ student.passport_number }}</td>
-                <td>{{ student.reference_number }}</td>
                 <td>{{ student.residence_end_date }}</td>
                 <td>
                     {% if student.image %}

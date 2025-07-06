@@ -83,8 +83,8 @@
     if (letterForm) {
         letterForm.addEventListener('submit', function(event) {
             const viewTypeCode = "{{ view.letter_type_code }}";
-            // أضفنا G-TRIP إلى القائمة
-            const needsPopup = ['RECPT', 'AIR', 'G-TRIP'];
+            // أضفنا PPS إلى القائمة
+            const needsPopup = ['RECPT', 'AIR', 'PPS'];
 
             if (needsPopup.includes(viewTypeCode)) {
                 event.preventDefault();
@@ -93,7 +93,7 @@
                 let modalHtml  = '';
 
                 // --- نافذة بيانات الرحلة الجماعية G‑TRIP ---
-                if (viewTypeCode === 'G-TRIP') {
+                if (viewTypeCode === 'PPS') {
                     modalTitle = 'بيانات الرحلة';
                     modalHtml  = `
                         <div style="text-align: right;">
@@ -138,7 +138,7 @@
                         title: 'swal2-custom-title',
                     },
                     didOpen: () => {
-                        if (viewTypeCode === 'G-TRIP') {
+                        if (viewTypeCode === 'PPS') {
                             flatpickr("#swal-travel-date", { dateFormat: "Y-m-d" });
                         } else {
                             flatpickr("#swal-arrival-date", { dateFormat: "Y-m-d" });
@@ -148,7 +148,7 @@
                         let data = {};
 
                         // ------------- تحقق من الإدخالات ------------- //
-                        if (viewTypeCode === 'G-TRIP') {
+                        if (viewTypeCode === 'PPS') {
                             data.destination  = document.getElementById('swal-destination').value;
                             data.travel_date  = document.getElementById('swal-travel-date').value;
                             if (!data.destination || !data.travel_date) {
@@ -174,7 +174,7 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         // ---------- إنشاء الحقول المخفية طبقًا لنوع الخطاب ---------- //
-                        if (viewTypeCode === 'G-TRIP') {
+                        if (viewTypeCode === 'PPS') {
                             ['destination', 'travel_date'].forEach((key) => {
                                 let input = document.createElement('input');
                                 input.type  = 'hidden';

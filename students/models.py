@@ -1,9 +1,43 @@
-from django.db import models
+from django.db import models, transaction   
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
 
+
 class Student(models.Model):
+    # ← 4 مسافات هنا
+    first_name = models.CharField(max_length=50)
+    last_name  = models.CharField(max_length=50)
+
+    reference_number = models.CharField(
+        "الرقم المرجعي",
+        max_length=5,
+        editable=False,
+        null=True,       # مؤقّتًا
+        unique=False,    # مؤقّتًا
+    )
+
+    reference_number_int = models.PositiveIntegerField(
+        null=True,       # مؤقّتًا
+        editable=False,
+    )
+
+    def save(self, *args, **kwargs):
+        from django.db import transaction
+        if not self.reference_number:
+            with transaction.atomic():
+                last = (
+                    Student.objects
+                    .order_by("-reference_number_int")
+                    .values_list("reference_number_int", flat=True)
+                    .first()
+                ) or 0
+                nxt = last + 1
+                self.reference_number_int = nxt
+                self.reference_number     = f"{nxt:05d}"
+        super().save(*args, **kwargs)
+
+    
 
     GENDER_CHOICES = [
         ('M', 'ذكر'),
@@ -47,7 +81,6 @@ class Student(models.Model):
     residence_issue_place = models.CharField(max_length=100, blank=True, null=True, verbose_name="مكان إصدار الإقامة")
     residence_issued_date = models.DateField(blank=True, null=True, verbose_name="تاريخ إصدار الإقامة")
     residence_end_date = models.DateField(blank=True, null=True, verbose_name="تاريخ انتهاء الإقامة")
-    reference_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="الرقم المرجعي")
 
     # Entry & Exit Dates
     entry_date = models.DateField(blank=True, null=True, verbose_name="تاريخ الدخول")

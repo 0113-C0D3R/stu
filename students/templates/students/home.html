@@ -4,28 +4,125 @@
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %} ?v=1.1">
 
-    <h2>مرحبًا بك في نظام إدارة الطلاب</h2>
+<h2>مرحبًا بك في نظام إدارة طلاب معهد الفخرية - مديرية تريم</h2>
     
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">عدد الطلاب حسب الجنس</div>
-                <div class="card-body">
-                    <canvas id="genderChart"></canvas>
-                </div>
-            </div>
+    <div class="row g-3 my-4 text-center">
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-primary">
+        <div class="card-body p-3">
+            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+            <h4 class="mb-0">{{ total_students }}</h4>
+            <small class="text-muted">إجمالي الطلّاب</small>
         </div>
-        
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">عدد الطلاب حسب الجنسية</div>
-                <div class="card-body">
-                    <canvas id="nationalityChart"></canvas>
-                </div>
-            </div>
         </div>
     </div>
-        
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-info">
+        <div class="card-body p-3">
+            <i class="fas fa-mars fa-2x text-info mb-2"></i>
+            <h4 class="mb-0">{{ male_students }}</h4>
+            <small class="text-muted">ذكور</small>
+        </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-pink">
+        <div class="card-body p-3">
+            <i class="fas fa-venus fa-2x text-pink mb-2"></i>
+            <h4 class="mb-0">{{ female_students }}</h4>
+            <small class="text-muted">إناث</small>
+        </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-warning">
+        <div class="card-body p-3">
+            <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+            <h4 class="mb-0">{{ expiring }}</h4>
+            <small class="text-muted">تنتهي إقامتهم ≤ 30 يوم</small>
+        </div>
+        </div>
+    </div>
+
+    </div>
+
+<!-- ـــــ بطاقة الرسم الدائري حسب الجنس ـــــ #}
+    {# ـــــ بطاقة الرسم العمودي حسب الجنسية ـــــ #}
+    <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">توزيع الطلاب حسب الجنسية</span>
+
+        {# هنا القائمة المنسدلة — تبدو كفلتر صغير #}
+        <select id="year-select"
+            class="form-select form-select-sm w-auto ms-auto">
+            <option value="">كل السنوات</option>
+            {% for y in years %}
+            <option value="{{ y }}">{{ y }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="card-body">
+        <canvas id="nationalityChart" height="120"></canvas>
+    </div>
+    </div>
+-->
+
+<div class="card shadow-sm mt-4">
+  <div class="card-header text-center fw-bold">
+    أحدث 2 طلاب تم إضافتهم
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped mb-0 align-middle text-center">
+      <thead class="table-light">
+        <tr>
+          <th>الرقم المرجعي</th>
+          <th>الاسم</th>
+          <th>الصورة</th>
+          <th class="text-nowrap">التفاصيل</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in latest_students %}
+          <tr>
+            <td>{{ s.reference_number }}</td>
+
+            <td>{{ s.first_name }} {{ s.last_name }}</td>
+
+            <td>
+              {% if s.image %}
+                <img src="{{ s.image.url }}"
+                     alt="صورة"
+                     class="img-thumbnail"
+                     style="max-width:40px;">
+              {% else %}
+                —
+              {% endif %}
+            </td>
+
+            <td>
+              <a href="{% url 'students:student_detail' pk=s.id %}"
+                 class="btn btn-sm btn-outline-primary">
+                 <i class="fas fa-eye"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="4" class="text-muted">لا يوجد طلاب بعد.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
     <a href="{% url 'students:student_create' %}" class="btn btn-primary mt-4">إضافة طالب</a>
     <a href="{% url 'students:student_list' %}" class="btn btn-secondary mt-4">عرض جميع الطلاب</a>
 
@@ -153,5 +250,6 @@
         setInterval(updateCharts, 10000);
     </script>
 
+    <script src="{% static 'js/dashboard.js' %}"></script>
 
 {% endblock %}
