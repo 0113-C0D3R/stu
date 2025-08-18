@@ -1,0 +1,132 @@
+{% load static %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title>استمارة طلب تأشيرة دخول</title>
+
+    <!-- أنماط الطباعة الموحّدة للنظام -->
+    <!-- <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}"> -->
+
+    <style>
+        /* صفحة A4 بلا هوامش داخلية */
+        @page      { size: A4 portrait; margin: 0; }
+        body,html  { width:210mm; height:297mm; margin:0; font-family:"Scheherazade",sans-serif; }
+
+        .print-container        { position:relative; width:100%; height:100%; }
+        .letterhead-bg-image    { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+        #student-photo          { position:absolute; top:4mm; left:10mm; width:23mm; height:32mm; object-fit:cover; border:1px solid #000; z-index:1; }
+        .field                  { position:absolute; font-size:12pt; line-height:1; font-weight:bold; color:#000; white-space:nowrap; z-index:2; }
+
+    /* ===== مواضع مبدئية (عدِّل top/right بالملّيمتر حتى تصطف تمامًا) ===== */
+
+    /* أعلى الاستمارة */
+    #full_name         { top:45.5mm;  right:18mm;  width:135mm; }  /* الاسم */
+    #nationality       { top:53.5mm;  right:22mm;  }                /* الجنسية */
+    #gender            { top:45.5mm;  right:137mm;  }                /* الجنس */
+    #profession        { top:54mm;  right:149mm; }                /* المهنة */
+
+    #birth_date        { top:53.5mm;  right:106mm;  }                /* تاريخ الميلاد */
+    #birth_place       { top:53.5mm;  right:66mm;  width:60mm; }    /* محل الميلاد */
+
+    #passport_number   { top:61mm;  right:23mm;  }                /* رقم الجواز */
+    #passport_issue_auth { top:61mm; right:69mm;  width:55mm; }   /* جهة الإصدار */
+    #passport_issue    { top:61.5mm;  right:119mm;  }                /* تاريخ الإصدار */
+    #passport_expiry   { top:61.5mm;  right:166mm;  }                /* تاريخ الانتهاء */
+
+    /* بيانات التأشيرة/الإقامة/التسجيل (يسار/وسط القسم العلوي) */
+    #entry_visa_no     { top:88mm;  right:37mm;  }                /* رقم تأشيرة الدخول */
+    #entry_visa_auth   { top:88mm;  right:95mm;  }                /* جهة إصدارها */
+    #entry_visa_issue  { top:95mm;  right:37mm;  }                /* تاريخ الإصدار */
+    #entry_visa_expiry { top:95mm;  right:95mm;  }                /* تاريخ الانتهاء */
+
+    #residency_no      { top:102mm; right:37mm;  }                /* رقم الإقامة */
+    #residency_auth    { top:102mm; right:95mm;  }                /* جهة إصدارها */
+    #residency_issue   { top:109mm; right:37mm;  }                /* تاريخ الإصدار */
+    #residency_expiry  { top:109mm; right:95mm;  }                /* تاريخ الانتهاء */
+
+    #country_from      { top:69mm; right:145mm;  width:55mm; }    /* البلد القادم منها */
+    #registration_auth { top:116mm; right:95mm;  width:55mm; }    /* جهة التسجيل */
+    #registration_date { top:84.7mm; right:144mm;  }                /* تاريخ التسجيل */
+
+    /* نوع التأشيرة المطلوبة */
+    #exit_type         { top:132mm; right:50mm;  }                /* خروج / خروج وعودة */
+    #trips_count       { top:132mm; right:100mm; }                /* عدد السفرات */
+
+    /* جدول المرافقين (اتركه كما هو إن لم تتوافر بيانات) */
+    /* يمكنك ملء الصف الأول مثلاً إن لديك حقولًا فردية */
+    #dep1_name         { top:140.5mm; right:15mm; width:60mm; }
+    #dep1_relation     { top:141mm; right:61mm; width:20mm; }
+    #dep1_birth        { top:163mm; right:82mm; width:30mm; }
+
+        @media screen { .letterhead-bg-image{ display:block; } }
+    </style>
+</head>
+<!--
+<body onload="window.print()" onafterprint="window.close()">
+-->
+<body onload="window.print()">
+  <div class="print-container">
+    <img src="{% static 'images/exit_visa_bg.png' %}" class="letterhead-bg-image" alt="">
+
+    <!-- البيانات الأساسية -->
+    <span id="full_name" class="field">
+      {{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}
+    </span>
+    <span id="nationality" class="field">{{ student.get_nationality_display }}</span>
+    <span id="gender" class="field">{{ student.get_gender_display }}</span>
+    <span id="profession" class="field">{% firstof student.job "" %}</span>
+
+    <span id="birth_date"  class="field">{% firstof student.birth_date "" %}</span>
+    <span id="birth_place" class="field">{% firstof student.place_of_birth student.place_of_issue "" %}</span>
+
+    <span id="passport_number"   class="field">{% firstof student.passport_number "" %}</span>
+    <span id="passport_issue_auth" class="field">{% firstof student.place_of_issue "" %}</span>
+    <span id="passport_issue"    class="field">{% firstof student.date_of_issued "" %}</span>
+    <span id="passport_expiry"   class="field">
+      {% firstof student.passport_expiry student.residence_end_date "" %}
+    </span>
+
+    <!-- تأشيرة الدخول -->
+    <span id="entry_visa_no"     class="field">{% firstof student.entry_visa_number "" %}</span>
+    <span id="entry_visa_auth"   class="field">{% firstof student.entry_visa_issue_place "" %}</span>
+    <span id="entry_visa_issue"  class="field">{% firstof student.entry_visa_issue_date "" %}</span>
+    <span id="entry_visa_expiry" class="field">{% firstof student.entry_visa_expiry_date "" %}</span>
+
+    <!-- الإقامة -->
+    <span id="residency_no"     class="field">{% firstof student.iqama_number "" %}</span>
+    <span id="residency_auth"   class="field">{% firstof student.iqama_issue_authority "" %}</span>
+    <span id="residency_issue"  class="field">{% firstof student.iqama_issue_date "" %}</span>
+    <span id="residency_expiry" class="field">{% firstof student.iqama_expiry_date "" %}</span>
+
+    <!-- القدوم والتسجيل -->
+    <span id="country_from"      class="field">{% firstof student.registration_place "" %}</span>
+    <span id="registration_auth" class="field">{% firstof student.registration_authority "" %}</span>
+    <span id="registration_date" class="field">{% firstof student.registration_date "" %}</span>
+
+    <!-- نوع التأشيرة المطلوبة -->
+    <span id="exit_type"   class="field">
+      {% firstof student.exit_request_type "" %}  {# مثال: "خروج" أو "خروج وعودة" #}
+    </span>
+    <span id="trips_count" class="field">
+      {% firstof student.exit_trips_count "" %}
+    </span>
+
+    <!-- مرافقون (مثال لصف واحد إن كان لديك حقول فردية) -->
+    <span id="dep1_name"     class="field">{% firstof student.companion_name "" %}</span>
+    <span id="dep1_relation" class="field">{% firstof student.companion_relationship "" %}</span>
+    <span id="dep1_birth"    class="field">{% firstof student.companion_birth_date "" %}</span>
+  </div>
+
+  <!-- اطبع تلقائيًا إلا إن استدعيت ?debug=1 للمعايرة 
+  <script>
+    const p = new URLSearchParams(location.search);
+    if (!p.has("debug")) {
+      window.onload = () => window.print();
+      window.onafterprint = () => window.close();
+    }
+  </script>
+  -->
+</body>
+</html>

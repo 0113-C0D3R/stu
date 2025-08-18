@@ -35,7 +35,7 @@
     
     /* إظهار حاوية الطباعة الخاصة بنا */
     .print-container {
-        display: block !important;
+        display: none !important;
     }
 
     /* 3. تنسيق حاوية الطباعة والكليشة

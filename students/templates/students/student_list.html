@@ -1,6 +1,20 @@
 {% extends "students/base.html" %}
 {% load static %}
 {% block content %}
+
+{% url 'students:student_list' as list_url %}
+
+<nav aria-label="breadcrumb" class="mb-2">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">الرئيسية</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ back_url|default:list_url }}">الطلاب</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{{ student.first_name }}</li>
+  </ol>
+</nav>
+
+
 <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}?v=1.0">
 
 <form method="GET" action="{% url 'students:student_list' %}" class="mb-3">
@@ -29,9 +43,9 @@
             <tr>
                 <td>{{ student.reference_number|default:"—" }}</td>
                 <td>
-                    <a href="{% url 'students:student_detail' pk=student.id %}">
-                        {{ student.first_name }}
-                    </a>
+                <a href="{% url 'students:student_detail' student.pk %}?from={{ request.get_full_path|urlencode }}">
+                    {{ student.first_name }}
+                </a>
                 </td>
                 <td>
                     <img src="{% static 'flags/' %}{{ student.nationality.code|lower }}.gif"

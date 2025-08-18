@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title>استمارة طلب تأشيرة دخول</title>
+
+    <!-- أنماط الطباعة الموحّدة للنظام -->
+    <!-- <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}"> -->
+
+    <style>
+        /* صفحة A4 بلا هوامش داخلية */
+        @page      { size: A4 portrait; margin: 0; }
+        body,html  { width:210mm; height:297mm; margin:0; font-family:"Scheherazade",sans-serif; }
+
+        .print-container        { position:relative; width:100%; height:100%; }
+        .letterhead-bg-image    { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+        #student-photo          { position:absolute; top:4mm; left:10mm; width:23mm; height:32mm; object-fit:cover; border:1px solid #000; z-index:1; }
+        .field                  { position:absolute; font-size:12pt; line-height:1; font-weight:bold; color:#000; white-space:nowrap; z-index:2; }
+
+        /* ===== مواقع الحقول على الاستمارة (اضبطها حسب طابعتك) ===== */
+        /* البيانات الأساسية */
+        #full_name       { right:50mm;  top:48mm;  width:130mm; }
+        #nationality     { right:36mm;  top:55mm;  width:40mm;  }
+        #gender          { right:22mm;  top:62mm;  width:30mm;  }
+        #religion        { right:95mm;  top:58mm;  width:30mm;  }
+        #birth_date      { right:175mm;  top:55mm;  width:30mm;  }
+        #place_of_birth  { right:87mm;  top:55mm;  width:50mm;  }
+        #passport_number { right:27mm;  top:69mm;  width:45mm;  }
+        #place_of_issue  { right:79mm;  top:69mm;  width:40mm;  }
+        #passport_issue  { right:124mm;  top:69mm;  width:45mm;  }
+        #passport_expiry { right:171mm;  top:69mm;  width:40mm;  }
+        #profession      { right:168mm;  top:62mm;  width:60mm;  }
+        #marital_status  { right:122mm; top:62mm;  width:40mm;  }
+
+        /* معلومات الوصول والغرض والإقامة */
+        #country_from           { right:66.3mm;  top:115.4mm; width:60mm; }
+        #expected_arrival_date  { right:95mm; top:76mm; width:35mm; }
+        #expected_stay_duration { right:160mm;  top:76mm; width:35mm; }
+        #purpose_of_entry       { right:37mm;  top:83mm; width:55mm; }
+        #place_of_stay          { right:48mm;  top:90mm; width:110mm; }
+
+        /* جدول المرافق (نضع أول مرافق إن وجد) */
+        #companion_name         { right:19mm;  top:115.4mm; width:60mm; }
+        #companion_relation     { right:51mm;  top:115.4mm; width:25mm; }
+        #companion_birth        { right:82mm;  top:116mm; width:40mm; font-size: 13px; }
+
+        /* إخفاء الخلفية أثناء المعاينة */
+        @media screen { .letterhead-bg-image{ display:block; } }
+    </style>
+</head>
+<!--
+<body onload="window.print()" onafterprint="window.close()">
+-->
+<body onload="window.print()">
+<div class="print-container">
+    <!-- الخلفية الثابتة للاستمارة -->
+    <img src="{% static 'images/entry_visa_bg.jpg' %}" class="letterhead-bg-image" alt="Background"> 
+    
+    <!-- صورة الطالب 
+    {% if student.image and student.image.url %}
+        <img id="student-photo" src="{{ student.image.url }}" alt="Student photo">
+    {% else %}
+        <img id="student-photo" src="{% static 'images/photo_placeholder.png' %}" alt="Photo placeholder">
+    {% endif %} -->
+
+    {# ================== الحقول الديناميكية ================== #}
+    <!-- البيانات الأساسية -->
+    <span id="full_name"       class="field">{{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}</span>
+    <span id="nationality"     class="field">{{ student.get_nationality_display|default:"" }}</span>
+    <span id="gender"          class="field">{{ student.get_gender_display|default:"" }}</span>
+    <span id="religion"        class="field">{{ student.religion|default:"" }}</span>
+    <span id="birth_date"      class="field">{{ student.birth_date|date:"Y-m-d" }}</span>
+    <span id="place_of_birth"  class="field">{{ student.place_of_issue|default:"" }}</span>
+    <span id="passport_number" class="field">{{ student.passport_number|default:"" }}</span>
+    <span id="place_of_issue"  class="field">{{ student.place_of_issue|default:"" }}</span>
+    <span id="passport_issue"  class="field">{{ student.date_of_issued|date:"Y-m-d" }}</span>
+    <span id="passport_expiry" class="field">{{ student.residence_end_date|date:"Y-m-d" }}</span>
+    <span id="profession"      class="field">{{ student.job|default:"" }}</span>
+    <span id="marital_status"  class="field">{{ student.get_marital_status_display|default:"" }}</span>
+
+    <!-- معلومات الوصول والغرض والإقامة -->
+    <span id="country_from"          class="field">{{ student.registration_place|default:"" }}</span>
+    <span id="expected_arrival_date" class="field">{{ student.entry_date|date:"Y-m-d" }}</span>
+    {% if student.entry_date and student.end_date %}
+        {% with diff=student.end_date|timesince:student.entry_date %}
+            <span id="expected_stay_duration" class="field">{{ diff }}</span>
+        {% endwith %}
+    {% else %}
+        <span id="expected_stay_duration" class="field"></span>
+    {% endif %}
+    <span id="purpose_of_entry"      class="field">{{ student.purpose|default:"" }}</span>
+    <span id="place_of_stay"         class="field">{{ student.registration_place|default:"" }}</span>
+
+    <!-- بيانات أول مرافق على نفس الجواز (إن وُجد) -->
+    {% if student.companion_name %}
+        <span id="companion_name"     class="field">{{ student.companion_name }}</span>
+        <span id="companion_relation" class="field">{{ student.companion_relationship|default:"" }}</span>
+        <span id="companion_birth"    class="field">{{ student.companion_residence_end_date|date:"Y-m-d" }}</span>
+    {% endif %}
+</div>
+
+</body>
+</html>

@@ -21,6 +21,8 @@ import json
 from django.http import JsonResponse
 from django.db.models import Count
 from django.views.decorators.http import require_GET
+from urllib.parse import urlparse
+
 # ==============================================================================
 #                                CORE VIEWS
 # ==============================================================================
@@ -119,10 +121,27 @@ class StudentListView(LoginRequiredMixin, ListView):
         return qs
 
 
-class StudentDetailView(LoginRequiredMixin, DetailView):
+class StudentDetailView(DetailView):
     model = Student
-    template_name = 'students/student_detail.html'
-    context_object_name = 'student'
+    template_name = "students/student_detail.html"
+    context_object_name = "student"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        request = self.request
+
+        # back_url: إما من الـquery ?from= أو الرجوع للقائمة
+        back_url = request.GET.get("from")
+        if not back_url or urlparse(back_url).path == request.path:
+            back_url = reverse("students:student_list")
+        ctx["back_url"] = back_url
+
+        # السابق/التالي بناءً على id
+        s = self.object
+        Model = type(s)
+        ctx["prev_id"] = Model.objects.filter(id__lt=s.id).order_by("-id").values_list("id", flat=True).first()
+        ctx["next_id"] = Model.objects.filter(id__gt=s.id).order_by("id").values_list("id", flat=True).first()
+        return ctx
 
 
 class StudentCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -1029,4 +1048,28 @@ class GenerateGroupTripCertificateView(BaseLetterView):
 
 
         
+class EntryVisaFormView(DetailView):
+    template_name = "students/forms/entry_visa.html"
+    model = Student
+    context_object_name = "student"
 
+
+
+class ResidenceRenewalFormView(DetailView):
+    model = Student
+    template_name = "students/forms/residence_renewal.html"
+    context_object_name = "student"
+
+
+
+class ForeignServiceRequestFormView(DetailView):
+    model = Student
+    template_name = "students/forms/foreign_service_request.html"
+    context_object_name = "student"
+
+
+
+class ExitVisaFormView(DetailView):
+    model = Student
+    template_name = "students/forms/exit_visa.html"
+    context_object_name = "student"

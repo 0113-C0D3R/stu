@@ -1,0 +1,119 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title>استمارة طلب تأشيرة دخول</title>
+
+    <!-- أنماط الطباعة الموحّدة للنظام -->
+    <!-- <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}"> -->
+
+    <style>
+        /* صفحة A4 بلا هوامش داخلية */
+        @page      { size: A4 portrait; margin: 0; }
+        body,html  { width:210mm; height:297mm; margin:0; font-family:"Scheherazade",sans-serif; }
+
+        .print-container        { position:relative; width:100%; height:100%; }
+        .letterhead-bg-image    { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+        #student-photo          { position:absolute; top:4mm; left:10mm; width:23mm; height:32mm; object-fit:cover; border:1px solid #000; z-index:1; }
+        .field                  { position:absolute; font-size:12pt; line-height:1; font-weight:bold; color:#000; white-space:nowrap; z-index:2; }
+
+      /* مواضع مبدئية — عدّل top/right حتى تصطف تمامًا */
+      /* رأس الصفحة */
+      #req_no         { top:27mm; right:28mm; }      /* رقم الطلب إن أردت ملؤه */
+      #req_date       { top:41mm; right:169mm; }      /* تاريخ الطلب */
+
+      /* قسم Applicant Data (العمودان يمين/يسار) */
+      #given_name     { top:69.5mm; right:45mm; width:70mm; }
+      #surname        { top:69.5mm; right:161mm;  width:65mm; }
+
+      #nationality    { top:81mm; right:109mm; }
+      #sex            { top:80.4mm; right:24mm; }
+
+      #id_type        { top:91.9mm; right:46mm; }     /* نوع الهوية (جواز/إقامة/… إن وجد) */
+      #identity_no    { top:92mm; right:127mm; }
+
+      #place_of_issue { top:102.5mm; right:45mm; }
+      #date_of_issue  { top:103mm; right:135mm; }
+
+      #applicant_status { top:114mm; right:64mm; width:70mm; }  /* حالة مقدم الطلب */
+      #phone            { top:125mm; right:51mm;  }
+
+      /* نوع الخدمة */
+      #service_type   { top:155.6mm; right:6mm; width:150mm; }
+
+      /* توقيع مقدم الطلب + تاريخ تقديم الطلب أسفل*/
+      #submit_date_top   { top:225.9mm; right:36.9mm; }   /* تاريخ تقديم الطلب (العلوي) */
+      #applicant_sign    { top:160mm; right:36.9mm;  }   /* توقيع مقدم الطلب */
+
+      /* الحواشي السفلى (للاستعمال الرسمي) — نتركها فارغة عادة */
+      #submit_date_bottom{ top:255mm; right:145mm; }
+      #receiving_date    { top:264mm; right:145mm; }
+      #employee_name     { top:264mm; right:60mm; }
+
+        /* إخفاء الخلفية أثناء المعاينة */
+        @media screen { .letterhead-bg-image{ display:block; } }
+    </style>
+</head>
+<!--
+<body onload="window.print()" onafterprint="window.close()">
+-->
+<body onload="window.print()">
+  <div class="print-container">
+    <img src="{% static 'images/foreign_service_request_bg.jpg' %}" class="letterhead-bg-image" alt="">
+
+    <!-- رأس الصفحة -->
+    <span id="req_no"   class="field"></span>
+    <span id="req_date" class="field">{% now "Y-m-d" %}</span>
+
+    <!-- Applicant Data -->
+    <span id="given_name"    class="field">{{ student.first_name|default:"" }}</span>
+    <span id="surname"       class="field">{{ student.last_name|default:"" }}</span>
+
+    <span id="nationality"   class="field">{{ student.get_nationality_display|default:"" }}</span>
+    <span id="sex"           class="field">{{ student.get_gender_display|default:"" }}</span>
+
+    <span id="id_type"       class="field">
+      {# إن لم يوجد حقل نوع هوية نعرض جواز سفر افتراضياً #}
+      {% firstof student.id_type "جواز سفر" %}
+    </span>
+    <span id="identity_no"   class="field">
+      {% firstof student.identity_number student.passport_number "" %}
+    </span>
+
+    <span id="place_of_issue" class="field">{% firstof student.place_of_issue "" %}</span>
+    <span id="date_of_issue"  class="field"> {% firstof student.date_of_issued "" %}</span>
+
+    <span id="applicant_status" class="field">
+       {% firstof student.status student.get_marital_status_display "" %}
+    </span>
+    <span id="phone" class="field">
+      {% firstof student.phone_number student.mobile "" %}
+    </span>
+
+    <!-- نوع الخدمة -->
+    <span id="service_type" class="field">
+       {% firstof student.requested_service student.purpose "" %}
+    </span>
+
+    <!-- توقيع وتواريخ -->
+    <span id="submit_date_top" class="field">{% now "Y-m-d" %}</span>
+    <span id="applicant_sign"  class="field"></span>
+
+    <!-- الاستعمال الرسمي (تُركت فارغة) -->
+    <span id="submit_date_bottom" class="field"></span>
+    <span id="receiving_date"    class="field"></span>
+    <span id="employee_name"     class="field"></span>
+  </div>
+
+  <!-- اطبع تلقائيًا إلا إذا كان هناك ?debug=1 لسهولة المعايرة -->
+  
+  <!-- <script>
+    const p = new URLSearchParams(location.search);
+    if (!p.has("debug")) {
+      window.onload = () => window.print();
+      window.onafterprint = () => window.close();
+    }
+  </script> -->
+</body>
+</html>

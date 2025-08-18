@@ -13,7 +13,9 @@ from .views import (
     GenerateEntryPermitNSLetterView, GenerateReceptionDelegateLetterView,
     GenerateYemeniaAirwaysLetterView, GenerateAcceptanceStatementLetterView,
     GenerateGroupAcceptanceLetterView, GenerateEnrollmentCertificateLetterView,
-    GenerateGroupTripCertificateView, HomeView, dashboard_data
+    GenerateGroupTripCertificateView, HomeView, dashboard_data,
+    EntryVisaFormView, ResidenceRenewalFormView, ForeignServiceRequestFormView,
+    ExitVisaFormView
 )
 
 app_name = "students"
@@ -45,4 +47,9 @@ urlpatterns = [
     path("letter/group-acceptance-statement/", GenerateGroupAcceptanceLetterView.as_view(), name="generate_group_acceptance_letter"),
     path("letter/enrollment-certificate/",     GenerateEnrollmentCertificateLetterView.as_view(), name="generate_enrollment_certificate_letter"),
     path("letter/group-trip-certificate/",     GenerateGroupTripCertificateView.as_view(), name="generate_group_trip_certificate"),
+
+    path("student/<int:pk>/forms/entry-visa/",          EntryVisaFormView.as_view(), name="entry_visa_form", ),
+    path("student/<int:pk>/forms/residence-renewal/",   ResidenceRenewalFormView.as_view(), name="residence_renewal_form",),
+    path("student/<int:pk>/forms/foreign-service/",     ForeignServiceRequestFormView.as_view(), name="foreign_service_form",),
+    path("student/<int:pk>/forms/exit-visa/", ExitVisaFormView.as_view(), name="exit_visa_form",),
 ]

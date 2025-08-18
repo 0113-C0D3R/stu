@@ -1,0 +1,89 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8">
+    <title>استمارة طلب تأشيرة دخول</title>
+
+    <!-- أنماط الطباعة الموحّدة للنظام -->
+    <!-- <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}"> -->
+
+    <style>
+        /* صفحة A4 بلا هوامش داخلية */
+        @page      { size: A4 portrait; margin: 0; }
+        body,html  { width:210mm; height:297mm; margin:0; font-family:"Scheherazade",sans-serif; }
+
+        .print-container        { position:relative; width:100%; height:100%; }
+        .letterhead-bg-image    { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
+        #student-photo          { position:absolute; top:4mm; left:10mm; width:23mm; height:32mm; object-fit:cover; border:1px solid #000; z-index:1; }
+        .field                  { position:absolute; font-size:12pt; line-height:1; font-weight:bold; color:#000; white-space:nowrap; z-index:2; }
+
+        /* أمثلة تموضع — عدّل بالأرقام حتى تصطف تمامًا */
+        /* عمود بيانات الوثيقة (يمين) */
+        #doc-type        { top:56.3mm;  right:29mm; }  /* نوع الوثيقة */
+        #passport-no     { top:63.3mm;  right:29mm; }
+        #passport-issue  { top:84.2mm;  right:29mm; }  /* تاريخ الإصدار */
+        #passport-place  { top:70.2mm;  right:29mm; }  /* محل الإصدار */
+        #passport-expiry { top:91mm; right:29mm; }
+
+        /* عمود بيانات صاحب الوثيقة (يمين أسفل) */
+        #name            { top:106mm;  right:29mm; width:80mm; }
+        #father          { top:73mm;  right:110mm; width:80mm; }
+        #grand           { top:166mm;  right:29mm; width:80mm; }
+        #birth-date      { top:143.1mm;  right:29mm; }
+        #birth-place     { top:112mm; right:110mm; width:80mm; }
+        #nationality     { top:158mm; right:29mm; }
+        #religion        { top:138mm; right:110mm; }
+        #gender          { top:151mm; right:110mm; }
+        #profession      { top:173.2mm; right:30mm; width:80mm; }
+
+        /* عمود تأشيرة الدخول/الإقامة (اليسار) */
+        #visa-type       { top:60mm;  right:55mm;  }
+        #visa-purpose    { top:63mm;  right:94mm;  width:80mm; }
+        #visa-no         { top:86mm;  right:55mm;  }
+        #visa-issue      { top:99mm;  right:55mm;  }
+        #entry-date      { top:98.5mm; right:94mm;  }
+        #iqama-no        { top:125mm; right:55mm;  }
+        #iqama-issue     { top:138mm; right:55mm;  }
+        #iqama-expiry    { top:151mm; right:55mm;  }
+
+        @media screen{ .letterhead-bg-image{display:block;} }
+    </style>
+</head>
+<!--
+<body onload="window.print()" onafterprint="window.close()">
+-->
+<body onload="window.print()">
+  <div class="print-container">
+    <img src="{% static 'images/residence_renewal_bg.jpg' %}" class="letterhead-bg-image" alt="">
+    <!-- حقول ديناميكية (اترك ما لا يتوفر فارغًا تلقائيًا) -->
+    <!-- الوثيقة -->
+    <span id="doc-type"       class="field">جواز سفر</span>
+    <span id="passport-no"    class="field">{{ student.passport_number }}</span>
+    <span id="passport-issue" class="field">{{ student.date_of_issued|date:"Y-m-d" }}</span>
+    <span id="passport-place" class="field">{{ student.place_of_issue }}</span>
+    <span id="passport-expiry"class="field">{{ student.passport_expiry|date:"Y-m-d" }}</span>
+
+    <!-- صاحب الوثيقة -->
+    <span id="name"        class="field">{{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}</span>
+    <span id="father"      class="field">{{ student.father_name }}</span>
+    <span id="grand"       class="field">{{ student.grand_father_name }}</span>
+    <span id="birth-date"  class="field">{{ student.birth_date|date:"Y-m-d" }}</span>
+    <span id="birth-place" class="field">{{ student.place_of_birth }}</span>
+    <span id="nationality" class="field">{{ student.get_nationality_display }}</span>
+    <span id="religion"    class="field">{{ student.religion }}</span>
+    <span id="gender"      class="field">{{ student.get_gender_display }}</span>
+    <span id="profession"  class="field">{{ student.job }}</span>
+
+    <!-- بيانات التأشيرة/الإقامة -->
+    <span id="visa-type"    class="field">{{ student.visa_type }}</span>
+    <span id="visa-purpose" class="field">{{ student.purpose }}</span>
+    <span id="visa-no"      class="field">{{ student.entry_visa_number }}</span>
+    <span id="visa-issue"   class="field">{{ student.entry_visa_issue_date|date:"Y-m-d" }}</span>
+    <span id="entry-date"   class="field">{{ student.entry_date|date:"Y-m-d" }}</span>
+    <span id="iqama-no"     class="field">{{ student.iqama_number }}</span>
+    <span id="iqama-issue"  class="field">{{ student.iqama_issue_date|date:"Y-m-d" }}</span>
+    <span id="iqama-expiry" class="field">{{ student.iqama_expiry_date|date:"Y-m-d" }}</span>
+  </div>
+</body>
+</html>

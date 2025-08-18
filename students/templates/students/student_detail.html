@@ -2,6 +2,53 @@
 {% load static %}
 
 {% block content %}
+{% url 'students:student_list' as list_url %}
+
+<nav aria-label="breadcrumb" class="mb-2">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">الرئيسية</a></li>
+    <li class="breadcrumb-item">
+      <a href="{{ back_url|default:list_url }}">الطلاب</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{{ student.first_name }}</li>
+  </ol>
+</nav>
+
+
+
+<!-- شريط إجراءات لاصق -->
+<div class="action-bar d-flex flex-wrap gap-2 align-items-center mb-3">
+  <a href="{{ back_url }}" class="btn btn-secondary">⬅ رجوع</a>
+
+  <a href="{% url 'students:student_update' student.id %}" class="btn btn-primary">تعديل</a>
+
+  <form action="{% url 'students:student_delete' student.id %}" method="post" class="d-inline">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger" onclick="return confirm('تأكيد حذف هذا الطالب؟')">حذف</button>
+  </form>
+
+  <button type="button" class="btn btn-outline-primary" onclick="window.print()">🖨️ طباعة</button>
+
+  <button type="button" id="copyLinkBtn" class="btn btn-light">🔗 نسخ الرابط</button>
+
+  <div class="ms-auto d-flex gap-2">
+    {% if prev_id %}
+      <a class="btn btn-outline-secondary" href="{% url 'students:student_detail' prev_id %}?from={{ back_url|urlencode }}">‹ السابق</a>
+    {% endif %}
+    {% if next_id %}
+      <a class="btn btn-outline-secondary" href="{% url 'students:student_detail' next_id %}?from={{ back_url|urlencode }}">التالي ›</a>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+.action-bar{
+  position: sticky; top: 64px; z-index: 1020;
+  background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee;
+  border-radius: 8px;
+}
+</style>
+
 <div class="container-fluid mt-4">
   <div class="row">
     <div class="col-lg-3">
@@ -55,6 +102,53 @@
             </ul></div>
           </div>
         </div>
+
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapseForms">
+              الاستمارات
+            </button>
+          </h2>
+
+          <div id="collapseForms" class="accordion-collapse collapse"
+              data-bs-parent="#directiveAccordion">
+            <div class="accordion-body p-0">
+              <ul class="action-list">
+                <li>
+                  <a href="{% url 'students:entry_visa_form' student.id %}"
+                    target="_blank">
+                    <i class="fas fa-file-alt fa-fw text-info"></i>
+                    طلب تأشيرة دخول عبر الإدارة
+                  </a>
+                </li>
+
+                <li>
+                  <a href="{% url 'students:residence_renewal_form' student.id %}" target="_blank">
+                    <i class="fas fa-file-alt fa-fw text-info"></i>
+                    استمارة إقامة / تجديد
+                  </a>
+              </li>
+
+              <li>
+                <a href="{% url 'students:foreign_service_form' student.id %}" target="_blank">
+                  <i class="fas fa-file-alt fa-fw text-info"></i>
+                  استمارة خدمة للأجانب
+                </a>
+              </li>
+
+              <li>
+                <a href="{% url 'students:exit_visa_form' student.id %}" target="_blank">
+                  <i class="fas fa-file-alt fa-fw text-info"></i>
+                  تأشيرة خروج / خروج وعودة
+                </a>
+              </li>
+
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div class="accordion-item">
           <h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCorrespondence">مراسلات أخرى</button></h2>
           <div id="collapseCorrespondence" class="accordion-collapse collapse" data-bs-parent="#directiveAccordion">
@@ -68,8 +162,12 @@
   </div>
 
     <div class="col-lg-9">
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <!--
         <h3>ملف الطالب: <span class="text-primary">{{ student.full_name }},</span></h3>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+        <a href="{% url 'students:student_list' %}" class="btn btn-secondary" class="btn btn-secondary">⬅ رجوع إلى قائمة الطلاب</a>
+      </div>
         <div class="student-actions">
           <a href="{% url 'students:student_update' student.id %}" class="btn btn-outline-primary me-2"><i class="fas fa-edit me-1"></i> تعديل</a>
           <form action="{% url 'students:student_delete' student.id %}" method="post" class="d-inline">
@@ -77,7 +175,9 @@
             <button type="submit" class="btn btn-outline-danger" onclick="return confirm('هل أنت متأكد من حذف هذا الطالب؟');"><i class="fas fa-trash me-1"></i> حذف</button>
           </form>
         </div>
-      </div>
+      </div> -->
+
+      
 
       <div class="card shadow-sm">
         <div class="card-header p-0 border-bottom-0 card-header-title">

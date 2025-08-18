@@ -12,6 +12,7 @@ class StudentForm(forms.ModelForm):
         widgets = {
             'birth_date': forms.DateInput(attrs={'class': 'form-control flatpickr'}),
             'date_of_issued': forms.DateInput(attrs={'class': 'form-control flatpickr'}),
+            'passport_expiry': forms.DateInput(attrs={'class': 'form-control flatpickr'}),
             'registration_date': forms.DateInput(attrs={'class': 'form-control flatpickr'}),
             'residence_issued_date': forms.DateInput(attrs={'class': 'form-control flatpickr'}),
             'residence_end_date': forms.DateInput(attrs={'class': 'form-control flatpickr'}),

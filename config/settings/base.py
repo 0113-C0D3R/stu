@@ -1,7 +1,13 @@
 # config/settings/base.py
 
-import environ
 from pathlib import Path
+from pathlib import Path
+from functools import lru_cache
+import gettext
+import pycountry
+import logging
+import environ, json
+
 
 # 1. تهيئة django-environ وقراءة ملف .env
 env = environ.Env(
@@ -37,6 +43,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "django.middleware.locale.LocaleMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,6 +78,47 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+
+# -------------------------------------------------------------
+# Arabic country names for django-countries
+# -------------------------------------------------------------
+logger = logging.getLogger(__name__)
+
+@lru_cache
+def arabic_countries() -> dict[str, str]:
+    """
+    يُرجِع قاموس {كود ISO → اسم الدولة بالعربية}.
+    يحاول ملفات iso-codes 'iso3166' ثم 'iso3166-1'.
+    وإن لم يجدها، يَسقُط على قاموس يدوي صغير.
+    """
+    for domain in ("iso3166", "iso3166-1"):
+        try:
+            tr = gettext.translation(
+                domain=domain,
+                localedir=pycountry.LOCALES_DIR,
+                languages=["ar"],
+            )
+            _ = tr.gettext
+            return {c.alpha_2: _(c.name) for c in pycountry.countries}
+        except FileNotFoundError:
+            continue  # جرّب الدومين التالي
+
+    # ------- Fallback يدوي لأكثر الدول شيوعًا -------
+    logger.warning("Arabic iso-codes not found; using manual fallback.")
+    fallback = {
+        "YE": "اليمن",   "SA": "السعودية",  "AE": "الإمارات",
+        "QA": "قطر",     "KW": "الكويت",     "OM": "عُمان",
+        "BH": "البحرين", "EG": "مصر",        "SD": "السودان",
+    }
+    return {
+        c.alpha_2: fallback.get(c.alpha_2, c.name)
+        for c in pycountry.countries
+    }
+
+COUNTRIES_OVERRIDE = arabic_countries()
+
+
+
 LANGUAGE_CODE = 'ar'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -90,3 +138,5 @@ LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
