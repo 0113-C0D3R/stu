@@ -1,9 +1,20 @@
-# admin.py (النسخة المُعدلة والآمنة)
+# students/admin.py
 
 from django.contrib import admin
-# 1. تم تغيير الاستيراد من mark_safe إلى format_html
+from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from .models import Student, Correspondent, Document, ExecutiveDirector
+from django.utils.translation import gettext_lazy as _
+
+from .models import (
+    Student, Correspondent, Document, ExecutiveDirector,
+    CustomUser, AuthUserProxy,   # ← انتبه: AuthUserProxy يأتي من models.py
+)
+
+# لو كان CustomUser مسجل مسبقًا في مكان آخر، ألغِ تسجيله هنا احترازيًا
+try:
+    admin.site.unregister(CustomUser)
+except admin.sites.NotRegistered:
+    pass
 
 @admin.register(Correspondent)
 class CorrespondentAdmin(admin.ModelAdmin):
@@ -17,7 +28,6 @@ class ExecutiveDirectorAdmin(admin.ModelAdmin):
 
     def signature_thumbnail(self, obj):
         if obj.signature:
-            # 2. تم استخدام format_html لإنشاء HTML آمن
             return format_html('<img src="{}" style="width: 100px;" />', obj.signature.url)
         return ""
     signature_thumbnail.short_description = "معاينة التوقيع"
@@ -32,7 +42,32 @@ class DocumentAdmin(admin.ModelAdmin):
     list_display = ('student', 'doc_type', 'uploaded_at')
     list_filter = ('doc_type',)
 
+# ===== لا تسجّل CustomUser هنا =====
+# @admin.register(CustomUser)   ← احذف/لا تستخدم هذا
 
-admin.site.site_header = "لوحة التحكم - معهد الفخرية"   # العنوان الكبير أعلى لوحة الإدارة (وأعلى صفحة تسجيل الدخول)
-admin.site.site_title  = "لوحة التحكم - معهد الفخرية"   # نص عنوان التبويب في المتصفح
-admin.site.index_title = "لوحة التحكم - معهد الفخرية"    # عنوان صفحة البداية داخل الأدمن
+# سجّل البروكسي تحت قسم المصادقة والتفويض
+@admin.register(AuthUserProxy)
+class AuthUserAdmin(UserAdmin):
+    model = AuthUserProxy
+    list_display = ("username", "email", "first_name", "last_name", "is_staff", "is_active")
+    list_filter  = ("is_staff", "is_superuser", "is_active", "groups")
+
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("المعلومات الشخصية", {"fields": ("first_name", "last_name", "email")}),
+        ("الصلاحيات", {"fields": ("is_active", "is_staff", "groups")}),  # لا نعرض is_superuser
+        ("تواريخ مهمة", {"fields": ("last_login", "date_joined")}),
+    )
+    add_fieldsets = (
+        (None, {
+            "classes": ("wide",),
+            "fields": ("username", "password1", "password2", "is_staff", "groups"),
+        }),
+    )
+    search_fields = ("username", "first_name", "last_name", "email")
+    ordering = ("username",)
+
+# ترويسات لوحة التحكم
+admin.site.site_header = "لوحة التحكم - معهد الفخرية"
+admin.site.site_title  = "لوحة التحكم - معهد الفخرية"
+admin.site.index_title = "لوحة التحكم - معهد الفخرية"

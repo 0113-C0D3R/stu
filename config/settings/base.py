@@ -25,7 +25,7 @@ SECRET_KEY = env('DJANGO_SECRET_KEY')
 # 4. تثبيت التطبيقات
 INSTALLED_APPS = [
     'django.contrib.admin',
-    'django.contrib.auth',
+    'config.apps.ArabicAuthConfig',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
@@ -161,3 +161,6 @@ FILE_UPLOAD_PERMISSIONS = 0o640
 SCHOOL_LOGO_MAX_MB = 2
 SCHOOL_LOGO_MAX_PIXELS = 4000 * 4000  # حد أقصى لعدد البيكسلات
 SCHOOL_LOGO_ALLOWED_FORMATS = {"PNG", "JPEG", "WEBP"}  # ما نقبله فعليًا
+
+
+CSRF_FAILURE_VIEW = "students.views.csrf_failure"

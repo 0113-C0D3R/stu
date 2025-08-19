@@ -32,3 +32,6 @@ if settings.DEBUG:
 LOGIN_URL = "/accounts/login/"
 LOGIN_REDIRECT_URL = "/student/"
 LOGOUT_REDIRECT_URL = "/student/"
+
+
+handler403 = "students.views.error_403"

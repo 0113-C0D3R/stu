@@ -1,0 +1,76 @@
+{% extends "students/base.html" %}
+{% load static %}
+
+{% block title %}403 – وصول مرفوض{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+  <div class="row justify-content-center">
+    <div class="col-xl-8 col-lg-9">
+      <div class="card border-0 shadow-sm overflow-hidden">
+
+        <!-- شريط علوي: الرقم والعنوان -->
+        <div class="bg-light p-4 text-center">
+          <div style="font-size:64px; line-height:1; font-weight:800; letter-spacing:.05em;">403</div>
+          <h1 class="h4 mt-2 mb-0">وصول مرفوض</h1>
+          <p class="text-muted mb-0">لا تملك الصلاحية للوصول إلى هذه الصفحة.</p>
+        </div>
+
+        <!-- جسم البطاقة -->
+        <div class="p-4 p-md-5">
+
+          <!-- الشعار/الاسم (اختياري) -->
+          {% if site.logo or site.school_name %}
+          <div class="d-flex align-items-center gap-3 mb-4">
+            {% if site.logo %}
+              <img src="{{ site.logo.url }}" alt="شعار" style="height:48px;width:auto;border-radius:8px;background:#fff;padding:2px;">
+            {% endif %}
+            {% if site.school_name %}
+              <strong class="fs-5">{{ site.school_name }}</strong>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- رسالة توضيحية -->
+          <p class="mb-4">
+            يبدو أنك حاولت فتح مورد يتطلب صلاحيات خاصة. إن كنت ترى أن هذا خطأ،
+            تواصل مع مدير النظام لتحديث صلاحيات حسابك.
+          </p>
+
+          <!-- تلميحات -->
+          <ul class="mb-4">
+            <li>تأكّد من تسجيل الدخول بالحساب الصحيح.</li>
+            <li>إن كنت موظفًا جديدًا، اطلب إضافتك إلى المجموعة المناسبة (مسؤول، محرر، متصفح).</li>
+            <li>حاول الرجوع إلى الصفحة السابقة أو العودة للواجهة الرئيسية.</li>
+          </ul>
+
+          <!-- روابط عملية -->
+          <div class="d-flex flex-wrap gap-2">
+            <a href="javascript:history.back()" class="btn btn-outline-secondary">رجوع</a>
+            <a href="{% url 'students:student_list' %}" class="btn btn-primary">الواجهة الرئيسية</a>
+            {% if request.user.is_authenticated %}
+              <a href="/admin/" class="btn btn-light border">لوحة التحكم</a>
+              <a href="{% url 'logout' %}?next={{ request.path|urlencode }}" class="btn btn-outline-danger">تسجيل الخروج</a>
+            {% else %}
+              <a href="/admin/login/?next={{ request.path|urlencode }}" class="btn btn-success">تسجيل الدخول</a>
+            {% endif %}
+          </div>
+
+          <!-- سطر معلومات تقني (اختياري) -->
+          <hr class="my-4">
+          <div class="small text-muted">
+            <div>المسار المطلوب: <code dir="ltr">{{ path }}</code></div>
+            <div>المستخدم: {{ request.user|default:"-"}}
+              {% if request.user.is_authenticated %} (مسجّل دخول){% else %} (غير مسجّل){% endif %}
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

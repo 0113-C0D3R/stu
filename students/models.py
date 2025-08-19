@@ -138,6 +138,10 @@ class Student(models.Model):
 # إضافة موديل Document أسفل Student
 # ----------------------------
 class Document(models.Model):
+    class Meta:
+        verbose_name = "ملف"
+        verbose_name_plural = "الملفات"
+
     DOC_TYPES = [
         ('passport', 'جواز سفر'),
         ('residence', 'إقامة'),
@@ -309,3 +313,13 @@ def auto_delete_old_logo_on_change(sender, instance, **kwargs):
 def auto_delete_logo_on_delete(sender, instance, **kwargs):
     if instance.logo:
         instance.logo.storage.delete(instance.logo.name)
+
+
+class AuthUserProxy(CustomUser):
+    class Meta:
+        proxy = True
+        app_label = "auth"                 # ← هذا ما ينقلها تحت Authentication and Authorization
+        verbose_name = "المستخدم"
+        verbose_name_plural = "المستخدمون"
+
+

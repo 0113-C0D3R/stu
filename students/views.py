@@ -24,6 +24,7 @@ from django.views.decorators.http import require_GET
 from urllib.parse import urlparse
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.template.response import TemplateResponse
 
 # ==============================================================================
 #                                CORE VIEWS
@@ -1092,3 +1093,20 @@ def site_settings_view(request):
     return render(request, "students/site_settings.html", {"form": form})
 
 
+
+def error_403(request, exception=None):
+    ctx = {
+        "title": "وصول مرفوض",
+        "path": request.path,
+        "is_auth": request.user.is_authenticated,
+    }
+    return TemplateResponse(request, "errors/403.html", ctx, status=403)
+
+# (اختياري) صفحة خاصة بأخطاء CSRF
+def csrf_failure(request, reason=""):
+    ctx = {
+        "title": "انتهت الجلسة الأمنية",
+        "reason": reason,
+        "path": request.path,
+    }
+    return TemplateResponse(request, "errors/403_csrf.html", ctx, status=403)
