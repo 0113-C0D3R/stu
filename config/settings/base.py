@@ -1,7 +1,6 @@
 # config/settings/base.py
 
 from pathlib import Path
-from pathlib import Path
 from functools import lru_cache
 import gettext
 import pycountry
@@ -43,13 +42,20 @@ CRISPY_TEMPLATE_PACK = 'bootstrap5'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    "django.middleware.locale.LocaleMiddleware",
+
+    # حدّد اللغة من الكوكي/الهيدر أولاً
+    'django.middleware.locale.LocaleMiddleware',
+
+    # بعدها نجبر العربية داخل /admin/
+    'config.middleware.ForceAdminArabicMiddleware',
+
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
 
 ROOT_URLCONF = 'config.urls'
 
@@ -64,6 +70,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "students.context_processors.site_settings",
             ],
         },
     },
@@ -140,3 +147,17 @@ LOGOUT_REDIRECT_URL = 'login'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
+# حدود ومساحات الرفع
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024      # 5MB لكل طلب
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024     # 5MB لكل ملف
+
+# لمنع المتصفح من التخمين وتشغيل محتوى بغير نوعه
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# صلاحيات ملفات الرفع على القرص (لا تنفيذ)
+FILE_UPLOAD_PERMISSIONS = 0o640
+
+# قيود الشعار
+SCHOOL_LOGO_MAX_MB = 2
+SCHOOL_LOGO_MAX_PIXELS = 4000 * 4000  # حد أقصى لعدد البيكسلات
+SCHOOL_LOGO_ALLOWED_FORMATS = {"PNG", "JPEG", "WEBP"}  # ما نقبله فعليًا

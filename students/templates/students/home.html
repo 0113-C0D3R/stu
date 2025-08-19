@@ -4,7 +4,18 @@
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %} ?v=1.1">
 
-<h2>مرحبًا بك في نظام إدارة طلاب معهد الفخرية - مديرية تريم</h2>
+  {% if site.logo %}
+    <img src="{{ site.logo.url }}" alt="شعار المدرسة" style="height:80px" class="mb-2">
+  {% else %}
+    <!-- بديل احتياطي إن لم يُرفع شعار -->
+    <img src="{% static 'students/images/alfa-logo.jpg' %}" alt="شعار المدرسة" style="height:80px" class="mb-2">
+  {% endif %}
+
+    {% if site.school_name %}
+    <h2 style="font-size: 18px; font-weight: 600;">مرحبًا بك في نظام إدارة طلاب {{ site.school_name }}</h2>
+    {% else %}
+    <h2>مرحبًا بك في نظام إدارة طلاب</h2>
+    {% endif %}
     
     <div class="row g-3 my-4 text-center">
 

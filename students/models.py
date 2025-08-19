@@ -2,7 +2,10 @@ from django.db import models, transaction
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django_countries.fields import CountryField
-
+# ===== Site Settings (School Logo) =====
+import uuid
+from django.db.models.signals import pre_save, post_delete
+from django.dispatch import receiver
 
 class Student(models.Model):
     # ← 4 مسافات هنا
@@ -263,3 +266,46 @@ class ReferenceCounter(models.Model):
 
     def __str__(self):
         return f"عدّاد {self.letter_type_code}: {self.last_sequence}"
+
+
+
+def school_logo_path(instance, filename):
+    # اسم عشوائي بامتداد PNG (نحن سنعيد ترميز الصورة في الفورم لضمان الأمان)
+    return f"school/logo/{uuid.uuid4().hex}.png"
+
+class SiteSettings(models.Model):
+    school_name = models.CharField("اسم المدرسة", max_length=255, blank=True)
+    logo = models.ImageField("شعار المدرسة", upload_to=school_logo_path, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "إعدادات الموقع"
+        verbose_name_plural = "إعدادات الموقع"
+
+    def __str__(self):
+        return self.school_name or "إعدادات الموقع"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+# حذف الملف القديم عند تغيير الشعار لتفادي التراكم
+@receiver(pre_save, sender=SiteSettings)
+def auto_delete_old_logo_on_change(sender, instance, **kwargs):
+    if not instance.pk:
+        return
+    try:
+        old = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        return
+    old_file = getattr(old, "logo", None)
+    new_file = getattr(instance, "logo", None)
+    if old_file and new_file and old_file.name != new_file.name:
+        old_file.storage.delete(old_file.name)
+
+# حذف الملف من القرص عند حذف السجل
+@receiver(post_delete, sender=SiteSettings)
+def auto_delete_logo_on_delete(sender, instance, **kwargs):
+    if instance.logo:
+        instance.logo.storage.delete(instance.logo.name)

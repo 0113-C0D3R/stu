@@ -1,0 +1,20 @@
+{% extends "students/base.html" %}
+{% block content %}
+<h3 class="mb-3">إعدادات الموقع</h3>
+<form method="post" enctype="multipart/form-data" class="card p-3">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">اسم المدرسة</label>
+    {{ form.school_name }}
+  </div>
+  <div class="mb-3">
+    <label class="form-label d-block">شعار المدرسة</label>
+    {% if form.instance.logo %}
+      <img src="{{ form.instance.logo.url }}" alt="الشعار الحالي" style="height:80px" class="mb-2 d-block">
+    {% endif %}
+    {{ form.logo }}
+    <small class="text-muted d-block mt-1">الحد الأقصى {{ settings.SCHOOL_LOGO_MAX_MB }}MB. صيغ: PNG/JPEG/WEBP.</small>
+  </div>
+  <button class="btn btn-primary" type="submit">حفظ</button>
+</form>
+{% endblock %}

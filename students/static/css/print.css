@@ -30,12 +30,12 @@
     ------------------------------------ */
     /* إخفاء كل العناصر التي لا نريدها في الطباعة (مثل الأزرار) */
     .no-print {
-        display: none !important;
+        display: block !important;
     }
     
     /* إظهار حاوية الطباعة الخاصة بنا */
     .print-container {
-        display: none !important;
+        display: block !important;
     }
 
     /* 3. تنسيق حاوية الطباعة والكليشة

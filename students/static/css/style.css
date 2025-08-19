@@ -353,3 +353,8 @@ h3.pref-num span {
 
 /* لون مميّز عند تفعيل الوضع الداكن (مثلاً أصفر الشمس) */
 [data-bs-theme="dark"] #themeToggle i { color:#ffc107; }
+
+a#siteSettingsBtn ::before {
+    color: #fff !important
+}
+

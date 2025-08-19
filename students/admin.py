@@ -31,3 +31,8 @@ class StudentAdmin(admin.ModelAdmin):
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('student', 'doc_type', 'uploaded_at')
     list_filter = ('doc_type',)
+
+
+admin.site.site_header = "لوحة التحكم - معهد الفخرية"   # العنوان الكبير أعلى لوحة الإدارة (وأعلى صفحة تسجيل الدخول)
+admin.site.site_title  = "لوحة التحكم - معهد الفخرية"   # نص عنوان التبويب في المتصفح
+admin.site.index_title = "لوحة التحكم - معهد الفخرية"    # عنوان صفحة البداية داخل الأدمن

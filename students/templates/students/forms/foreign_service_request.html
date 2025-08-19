@@ -6,7 +6,7 @@
     <title>استمارة طلب تأشيرة دخول</title>
 
     <!-- أنماط الطباعة الموحّدة للنظام -->
-    <!-- <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}"> -->
+    <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}">
 
     <style>
         /* صفحة A4 بلا هوامش داخلية */
@@ -58,7 +58,7 @@
 <!--
 <body onload="window.print()" onafterprint="window.close()">
 -->
-<body onload="window.print()">
+<body onload="window.print()" onafterprint="window.close()">
   <div class="print-container">
     <img src="{% static 'images/foreign_service_request_bg.jpg' %}" class="letterhead-bg-image" alt="">
 

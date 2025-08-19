@@ -7,7 +7,7 @@
     <title>استمارة طلب تأشيرة دخول</title>
 
     <!-- أنماط الطباعة الموحّدة للنظام -->
-    <!-- <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}"> -->
+    <link rel="stylesheet" href="{% static 'css/print.css' %}?v={% now 'U' %}">
 
     <style>
         /* صفحة A4 بلا هوامش داخلية */
@@ -16,7 +16,7 @@
 
         .print-container        { position:relative; width:100%; height:100%; }
         .letterhead-bg-image    { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:0; }
-        #student-photo          { position:absolute; top:4mm; left:10mm; width:23mm; height:32mm; object-fit:cover; border:1px solid #000; z-index:1; }
+        #student-photo          { position:absolute; top:4mm; left:13mm; width:26mm; height:36mm; object-fit:cover; border:1px solid #000; z-index:1; }
         .field                  { position:absolute; font-size:12pt; line-height:1; font-weight:bold; color:#000; white-space:nowrap; z-index:2; }
 
     /* ===== مواضع مبدئية (عدِّل top/right بالملّيمتر حتى تصطف تمامًا) ===== */
@@ -66,9 +66,15 @@
 <!--
 <body onload="window.print()" onafterprint="window.close()">
 -->
-<body onload="window.print()">
+<body onload="window.print()" onafterprint="window.close()">
   <div class="print-container">
     <img src="{% static 'images/exit_visa_bg.png' %}" class="letterhead-bg-image" alt="">
+
+    {% if student.image and student.image.url %}
+        <img id="student-photo" src="{{ student.image.url }}" alt="Student photo">
+    {% else %}
+        <img id="student-photo" src="{% static 'images/photo_placeholder.png' %}" alt="Photo placeholder">
+    {% endif %}
 
     <!-- البيانات الأساسية -->
     <span id="full_name" class="field">
@@ -119,7 +125,7 @@
     <span id="dep1_birth"    class="field">{% firstof student.companion_birth_date "" %}</span>
   </div>
 
-  <!-- اطبع تلقائيًا إلا إن استدعيت ?debug=1 للمعايرة 
+  <!-- اطبع تلقائيًا إلا إن استدعيت ?debug=1 للمعايرة   -->
   <script>
     const p = new URLSearchParams(location.search);
     if (!p.has("debug")) {
@@ -127,6 +133,6 @@
       window.onafterprint = () => window.close();
     }
   </script>
-  -->
+
 </body>
 </html>

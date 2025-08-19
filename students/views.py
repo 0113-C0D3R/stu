@@ -13,8 +13,8 @@ from django.utils import timezone
 from hijri_converter.convert import Gregorian
 from django.db import transaction
 from datetime import datetime, timedelta
-from .models import Student, Correspondent, ExecutiveDirector, GeneratedLetter, ReferenceCounter
-from .forms import StudentForm, DocumentFormSet
+from .models import Student, Correspondent, ExecutiveDirector, GeneratedLetter, ReferenceCounter, SiteSettings
+from .forms import StudentForm, DocumentFormSet, SiteSettingsForm
 from django.urls import reverse
 
 import json
@@ -22,6 +22,8 @@ from django.http import JsonResponse
 from django.db.models import Count
 from django.views.decorators.http import require_GET
 from urllib.parse import urlparse
+
+from django.contrib.auth.decorators import login_required, permission_required
 
 # ==============================================================================
 #                                CORE VIEWS
@@ -1073,3 +1075,20 @@ class ExitVisaFormView(DetailView):
     model = Student
     template_name = "students/forms/exit_visa.html"
     context_object_name = "student"
+
+
+
+@login_required
+@permission_required("students.change_sitesettings", raise_exception=True)
+def site_settings_view(request):
+    settings_obj = SiteSettings.get_solo()
+    if request.method == "POST":
+        form = SiteSettingsForm(request.POST, request.FILES, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            return redirect("students:site_settings")
+    else:
+        form = SiteSettingsForm(instance=settings_obj)
+    return render(request, "students/site_settings.html", {"form": form})
+
+

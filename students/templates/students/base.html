@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css"/>
 
   <!-- أي نمط مخصّص -->
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.4"/>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=1.1"/>
 
   <!-- Flatpickr & Select2 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
@@ -40,6 +40,18 @@
                   title="تبديل الوضع">
             <i id="themeIcon" class="fas fa-moon fa-lg"></i>   {# يبدأ بأيقونة قمر #}
           </button>
+          
+          <!-- زر إعدادات الموقع: يظهر فقط للمصرّح لهم، وبجانبه مباشرة -->
+          {% if request.user.is_authenticated and perms.students.change_sitesettings %}
+          <a id="siteSettingsBtn"
+            href="{% url 'students:site_settings' %}"
+            class="btn btn-link nav-link p-0 ms-2 {% if request.resolver_match.url_name == 'site_settings' %}text-warning{% endif %}"
+            title="إعدادات الموقع" aria-label="إعدادات الموقع">
+            <i class="fas fa-cog fa-lg"></i>
+            <span class="visually-hidden">إعدادات</span>
+          </a>
+          {% endif %}
+
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
